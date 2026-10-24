@@ -1,64 +1,83 @@
+
 <?php
-// Core: DB, session, helpers
 declare(strict_types=1);
 
+// Load configuration
 $CFG = require __DIR__ . '/config.php';
-date_default_timezone_set($CFG['timezone'] ?? 'UTC');
 
+date_default_timezone_set($CFG['timezone'] ?? 'Asia/Kolkata');
+
+// Start session before any output
 if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax',
-        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')]);
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
+
+    session_set_cookie_params([
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => $isHttps,
+        'path' => '/',
+    ]);
+
     session_start();
 }
-
 
 function db(): PDO {
     static $pdo = null;
     global $CFG;
 
-    if ($pdo !== null) {
+    if ($pdo instanceof PDO) {
         return $pdo;
     }
 
     $opt = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false
+        PDO::ATTR_EMULATE_PREPARES => false,
     ];
 
-    if ($CFG['db_driver'] === 'sqlite') {
+    if (($CFG['db_driver'] ?? '') === 'pgsql') {
+        $host = $CFG['db_host'] ?? '';
+        $port = $CFG['db_port'] ?? '5432';
+        $name = $CFG['db_name'] ?? '';
+        $user = $CFG['db_user'] ?? '';
+        $pass = $CFG['db_pass'] ?? '';
+        $sslmode = $CFG['db_sslmode'] ?? 'require';
+
+        if ($host === '' || $name === '' || $user === '') {
+            throw new RuntimeException(
+                'PostgreSQL configuration is incomplete. Check Render environment variables.'
+            );
+        }
+
+        $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode={$sslmode}";
+        $pdo = new PDO($dsn, $user, $pass, $opt);
+
+    } elseif (($CFG['db_driver'] ?? '') === 'sqlite') {
         $pdo = new PDO(
             'sqlite:' . $CFG['sqlite_path'],
             null,
             null,
             $opt
         );
+
         $pdo->exec('PRAGMA journal_mode=WAL');
 
-    } elseif ($CFG['db_driver'] === 'pgsql') {
-        $dsn = "pgsql:host={$CFG['db_host']};"
-             . "port={$CFG['db_port']};"
-             . "dbname={$CFG['db_name']};"
-             . "sslmode={$CFG['db_sslmode']}";
-
-        $pdo = new PDO(
-            $dsn,
-            $CFG['db_user'],
-            $CFG['db_pass'],
-            $opt
-        );
-
     } else {
-        $pdo = new PDO(
-            "mysql:host={$CFG['db_host']};dbname={$CFG['db_name']};charset=utf8mb4",
-            $CFG['db_user'],
-            $CFG['db_pass'],
-            $opt
-        );
+        $host = $CFG['db_host'] ?? 'localhost';
+        $name = $CFG['db_name'] ?? 'tulipschat';
+        $user = $CFG['db_user'] ?? 'root';
+        $pass = $CFG['db_pass'] ?? '';
+
+        $dsn = "mysql:host={$host};dbname={$name};charset=utf8mb4";
+        $pdo = new PDO($dsn, $user, $pass, $opt);
     }
 
     return $pdo;
 }
+
 
 
 function e(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
