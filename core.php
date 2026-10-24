@@ -11,22 +11,55 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+
 function db(): PDO {
     static $pdo = null;
     global $CFG;
-    if ($pdo) return $pdo;
-    $opt = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false];
-    if ($CFG['db_driver'] === 'sqlite') {
-        $pdo = new PDO('sqlite:' . $CFG['sqlite_path'], null, null, $opt);
-        $pdo->exec('PRAGMA journal_mode=WAL');
-    } else {
-        $pdo = new PDO("mysql:host={$CFG['db_host']};dbname={$CFG['db_name']};charset=utf8mb4",
-            $CFG['db_user'], $CFG['db_pass'], $opt);
+
+    if ($pdo !== null) {
+        return $pdo;
     }
+
+    $opt = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false
+    ];
+
+    if ($CFG['db_driver'] === 'sqlite') {
+        $pdo = new PDO(
+            'sqlite:' . $CFG['sqlite_path'],
+            null,
+            null,
+            $opt
+        );
+        $pdo->exec('PRAGMA journal_mode=WAL');
+
+    } elseif ($CFG['db_driver'] === 'pgsql') {
+        $dsn = "pgsql:host={$CFG['db_host']};"
+             . "port={$CFG['db_port']};"
+             . "dbname={$CFG['db_name']};"
+             . "sslmode={$CFG['db_sslmode']}";
+
+        $pdo = new PDO(
+            $dsn,
+            $CFG['db_user'],
+            $CFG['db_pass'],
+            $opt
+        );
+
+    } else {
+        $pdo = new PDO(
+            "mysql:host={$CFG['db_host']};dbname={$CFG['db_name']};charset=utf8mb4",
+            $CFG['db_user'],
+            $CFG['db_pass'],
+            $opt
+        );
+    }
+
     return $pdo;
 }
+
 
 function e(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
