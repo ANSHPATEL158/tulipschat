@@ -1,19 +1,18 @@
-# Private configuration
+# Sensitive configuration
 /config.php
+/.env
+/.env.*
 
-# Database and installation data
+# Local database and user data
 /data/
-/install.php
-
-# User uploads
 /uploads/
 
-# Environment secrets
-.env
-.env.*
-!.env.example
+# Installer - do not deploy publicly
+/install.php
 
-# Logs and temporary files
+# Temporary files
 *.log
+*.tmp
 .DS_Store
 Thumbs.db
+desktop.ini
