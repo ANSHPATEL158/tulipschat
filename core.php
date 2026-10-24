@@ -158,10 +158,26 @@ function time_ago(int $t): string {
     return date('d M Y', $t);
 }
 
-function installed(): bool { return is_file(__DIR__ . '/data/installed.lock'); }
-if (!installed() && basename($_SERVER['SCRIPT_NAME']) !== 'install.php') {
-    header('Location: ' . base_url() . 'install.php'); exit;
+
+function installed(): bool {
+    if (is_file(__DIR__ . '/data/installed.lock')) {
+        return true;
+    }
+
+    try {
+        $pdo = db();
+        $pdo->query('SELECT 1 FROM users LIMIT 1');
+        return true;
+    } catch (Throwable $e) {
+        return false;
+    }
 }
+
+if (!installed() && basename($_SERVER['SCRIPT_NAME']) !== 'install.php') {
+    header('Location: ' . base_url() . 'install.php');
+    exit;
+}
+
 
 function page_head(string $title, bool $admin = false): void {
     $site = installed() ? setting('site_name', 'TulipsChat') : 'TulipsChat';
