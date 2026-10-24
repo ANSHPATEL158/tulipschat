@@ -1,0 +1,18 @@
+At line:1 char:50
++ $p='C:\xampp\htdocs\tulipschat\config.php'; $s=@('<?php','return [',` ...
++                                                  ~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept 
+assignments, such as a variable or a property.
+At line:1 char:58
++ ... \xampp\htdocs\tulipschat\config.php'; $s=@('<?php','return [',` 'db_d ...
++                                                        ~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept 
+assignments, such as a variable or a property.
+At line:1 char:71
++ ... tulipschat\config.php'; $s=@('<?php','return [',` 'db_driver' = ?: 'm ...
++                                                       ~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept 
+assignments, such as a variable or a property.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvalidLeftHandSide
+ 
