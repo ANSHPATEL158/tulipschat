@@ -1,0 +1,1 @@
+Add-on ZIP format: manifest.json at ZIP root. Only static assets (JS, CSS, JSON, images, fonts, TXT) are accepted; server-side PHP/HTML files are rejected. Add-ons are installed into addons/<id>/. Upload only add-ons you trust because JavaScript runs in visitors browsers.

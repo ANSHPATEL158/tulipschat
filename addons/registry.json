@@ -1,0 +1,11 @@
+{
+    "youtube_embed": {
+        "name": "YouTube Embeds",
+        "id": "youtube_embed",
+        "version": "1.0.0",
+        "description": "Chat messages mein YouTube links ke responsive privacy-enhanced player.",
+        "enabled": true,
+        "installed_at": "2026-10-24T10:09:26+05:30",
+        "updated_at": "2026-10-24T10:12:14+05:30"
+    }
+}
