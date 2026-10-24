@@ -3,7 +3,7 @@
 return [
     // Database configuration
     // Render Environment mein DB_DRIVER=pgsql set hona chahiye.
-    'db_driver' => 'sqlite',
+   'db_driver' => getenv('DB_DRIVER') ?: 'pgsql',
 
     // Render PostgreSQL connection
     'db_host' => getenv('DB_HOST') ?: '',
