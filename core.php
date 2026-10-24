@@ -1,3 +1,4 @@
+
 <?php
 declare(strict_types=1);
 
@@ -23,7 +24,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function db(): PDO {
+/**
+ * Database connection
+ */
+function db(): PDO
+{
     static $pdo = null;
     global $CFG;
 
@@ -47,7 +52,7 @@ function db(): PDO {
 
         if ($host === '' || $name === '' || $user === '') {
             throw new RuntimeException(
-                'PostgreSQL configuration is incomplete. Check Render environment variables.'
+                'PostgreSQL configuration incomplete hai. Environment variables check karein.'
             );
         }
 
@@ -55,13 +60,15 @@ function db(): PDO {
         $pdo = new PDO($dsn, $user, $pass, $opt);
 
     } elseif (($CFG['db_driver'] ?? '') === 'sqlite') {
-        $pdo = new PDO(
-            'sqlite:' . $CFG['sqlite_path'],
-            null,
-            null,
-            $opt
-        );
+        $path = $CFG['sqlite_path'] ?? '';
 
+        if ($path === '') {
+            throw new RuntimeException(
+                'SQLite database path configure nahi hai.'
+            );
+        }
+
+        $pdo = new PDO('sqlite:' . $path, null, null, $opt);
         $pdo->exec('PRAGMA journal_mode=WAL');
 
     } else {
@@ -77,114 +84,278 @@ function db(): PDO {
     return $pdo;
 }
 
+/**
+ * Escape HTML output
+ */
+function e(?string $s): string
+{
+    return htmlspecialchars(
+        (string)$s,
+        ENT_QUOTES | ENT_SUBSTITUTE,
+        'UTF-8'
+    );
+}
 
+/**
+ * Base URL for root and admin pages
+ */
+function base_url(): string
+{
+    $script = $_SERVER['SCRIPT_NAME'] ?? '/';
+    $dir = str_replace('\\', '/', dirname($script));
 
-function e(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+    if (basename($dir) === 'admin') {
+        $dir = dirname($dir);
+    }
 
-function base_url(): string {
-    // project root ka web path (admin folder se bhi sahi)
-    $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-    if (basename($dir) === 'admin') $dir = dirname($dir);
     return rtrim($dir, '/') . '/';
 }
 
-function redirect(string $to): never { header('Location: ' . base_url() . $to); exit; }
+/**
+ * Redirect
+ */
+function redirect(string $to): never
+{
+    header('Location: ' . base_url() . $to);
+    exit;
+}
 
-function csrf(): string {
-    if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(16));
+/**
+ * CSRF protection
+ */
+function csrf(): string
+{
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+
     return $_SESSION['csrf'];
 }
-function csrf_field(): string { return '<input type="hidden" name="csrf" value="' . csrf() . '">'; }
-function csrf_ok(): bool {
-    $t = $_POST['csrf'] ?? ($_SERVER['HTTP_X_CSRF'] ?? '');
-    return is_string($t) && hash_equals(csrf(), $t);
+
+function csrf_field(): string
+{
+    return '<input type="hidden" name="csrf" value="' .
+        e(csrf()) . '">';
 }
 
-function setting(string $name, string $default = ''): string {
+function csrf_ok(): bool
+{
+    $token = $_POST['csrf'] ?? ($_SERVER['HTTP_X_CSRF'] ?? '');
+
+    return is_string($token)
+        && $token !== ''
+        && hash_equals(csrf(), $token);
+}
+
+/**
+ * Read a setting from the database
+ */
+function setting(string $name, string $default = ''): string
+{
     static $cache = null;
+
     if ($cache === null) {
         $cache = [];
-        foreach (db()->query('SELECT name, value FROM settings') as $r) $cache[$r['name']] = $r['value'];
+
+        try {
+            foreach (
+                db()->query('SELECT name, value FROM settings') as $row
+            ) {
+                $cache[$row['name']] = $row['value'];
+            }
+        } catch (Throwable $e) {
+            error_log('Settings load error: ' . $e->getMessage());
+        }
     }
-    return $cache[$name] ?? $default;
+
+    return (string)($cache[$name] ?? $default);
 }
-function set_setting(string $name, string $value): void {
-    $st = db()->prepare('UPDATE settings SET value=? WHERE name=?');
+
+/**
+ * Insert or update a setting
+ */
+function set_setting(string $name, string $value): void
+{
+    $pdo = db();
+
+    $st = $pdo->prepare(
+        'UPDATE settings SET value=? WHERE name=?'
+    );
     $st->execute([$value, $name]);
+
     if ($st->rowCount() === 0) {
-        $chk = db()->prepare('SELECT COUNT(*) FROM settings WHERE name=?'); $chk->execute([$name]);
-        if (!$chk->fetchColumn()) db()->prepare('INSERT INTO settings (name, value) VALUES (?,?)')->execute([$name, $value]);
+        $chk = $pdo->prepare(
+            'SELECT COUNT(*) FROM settings WHERE name=?'
+        );
+        $chk->execute([$name]);
+
+        if (!(int)$chk->fetchColumn()) {
+            $pdo->prepare(
+                'INSERT INTO settings (name, value) VALUES (?, ?)'
+            )->execute([$name, $value]);
+        }
     }
 }
 
-function current_user(): ?array {
-    static $u = false;
-    if ($u !== false) return $u;
-    $u = null;
-    if (!empty($_SESSION['uid'])) {
-        $st = db()->prepare('SELECT * FROM users WHERE id=?');
-        $st->execute([$_SESSION['uid']]);
-        $u = $st->fetch() ?: null;
-        if (!$u || $u['status'] === 'banned') { $_SESSION = []; session_destroy(); $u = null; }
+/**
+ * Current logged-in user
+ */
+function current_user(): ?array
+{
+    static $loaded = false;
+    static $user = null;
+
+    if ($loaded) {
+        return $user;
     }
-    return $u;
+
+    $loaded = true;
+
+    if (empty($_SESSION['uid'])) {
+        return null;
+    }
+
+    $st = db()->prepare('SELECT * FROM users WHERE id=?');
+    $st->execute([$_SESSION['uid']]);
+    $user = $st->fetch() ?: null;
+
+    if (!$user || ($user['status'] ?? '') === 'banned') {
+        $_SESSION = [];
+        session_destroy();
+        $user = null;
+    }
+
+    return $user;
 }
 
-function require_login(): array {
-    $u = current_user();
-    if (!$u) redirect('login.php');
-    return $u;
-}
-function require_admin(): array {
-    $u = require_login();
-    if ($u['role'] !== 'admin') redirect('chat.php');
-    return $u;
+/**
+ * Require login
+ */
+function require_login(): array
+{
+    $user = current_user();
+
+    if (!$user) {
+        redirect('login.php');
+    }
+
+    return $user;
 }
 
-function avatar_url(?string $file): string {
-    return base_url() . ($file ? 'uploads/avatars/' . rawurlencode($file) : 'assets/default.svg');
+/**
+ * Require admin
+ */
+function require_admin(): array
+{
+    $user = require_login();
+
+    if (($user['role'] ?? '') !== 'admin') {
+        redirect('chat.php');
+    }
+
+    return $user;
 }
 
-function is_online(array $u): bool {
+/**
+ * Profile avatar URL
+ */
+function avatar_url(?string $file): string
+{
+    if (
+        $file === null ||
+        $file === '' ||
+        basename($file) !== $file ||
+        str_contains($file, '/') ||
+        str_contains($file, '\\')
+    ) {
+        return base_url() . 'assets/default.svg';
+    }
+
+    return base_url() . 'uploads/avatars/' . rawurlencode($file);
+}
+
+/**
+ * Online status
+ */
+function is_online(array $user): bool
+{
     global $CFG;
-    return (int)$u['last_seen'] > time() - $CFG['online_timeout'];
+
+    return (int)($user['last_seen'] ?? 0) >
+        time() - (int)($CFG['online_timeout'] ?? 300);
 }
 
-function time_ago(int $t): string {
-    $d = time() - $t;
-    if ($d < 60) return 'abhi';
-    if ($d < 3600) return floor($d / 60) . ' min pehle';
-    if ($d < 86400) return floor($d / 3600) . ' ghante pehle';
-    return date('d M Y', $t);
+/**
+ * Time since last activity
+ */
+function time_ago(int $timestamp): string
+{
+    $diff = time() - $timestamp;
+
+    if ($diff < 60) {
+        return 'abhi';
+    }
+
+    if ($diff < 3600) {
+        return floor($diff / 60) . ' min pehle';
+    }
+
+    if ($diff < 86400) {
+        return floor($diff / 3600) . ' ghante pehle';
+    }
+
+    return date('d M Y', $timestamp);
 }
 
-
-function installed(): bool {
+/**
+ * Check installation
+ */
+function installed(): bool
+{
     if (is_file(__DIR__ . '/data/installed.lock')) {
         return true;
     }
 
     try {
-        $pdo = db();
-        $pdo->query('SELECT 1 FROM users LIMIT 1');
+        db()->query('SELECT 1 FROM users LIMIT 1');
         return true;
     } catch (Throwable $e) {
         return false;
     }
 }
 
-if (!installed() && basename($_SERVER['SCRIPT_NAME']) !== 'install.php') {
+/**
+ * Redirect to installer when necessary
+ */
+if (
+    !installed() &&
+    basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php'
+) {
     header('Location: ' . base_url() . 'install.php');
     exit;
 }
 
+/**
+ * Page header
+ */
+function page_head(string $title, bool $admin = false): void
+{
+    $site = installed()
+        ? setting('site_name', 'TulipsChat')
+        : 'TulipsChat';
 
-function page_head(string $title, bool $admin = false): void {
-    $site = installed() ? setting('site_name', 'TulipsChat') : 'TulipsChat';
-    echo '<!doctype html><html lang="en"><head><meta charset="utf-8">'
-       . '<meta name="viewport" content="width=device-width,initial-scale=1">'
-       . '<title>' . e($title) . ' - ' . e($site) . '</title>'
-       . '<link rel="stylesheet" href="' . base_url() . 'assets/style.css">'
-       . '</head><body' . ($admin ? ' class="admin"' : '') . '>';
+    echo '<!doctype html><html lang="en"><head>';
+    echo '<meta charset="utf-8">';
+    echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+    echo '<title>' . e($title) . ' - ' . e($site) . '</title>';
+    echo '<link rel="stylesheet" href="' . e(base_url()) . 'assets/style.css">';
+    echo '</head><body' . ($admin ? ' class="admin"' : '') . '>';
 }
-function page_foot(): void { echo '</body></html>'; }
+
+/**
+ * Page footer
+ */
+function page_foot(): void
+{
+    echo '</body></html>';
+}
