@@ -29,6 +29,7 @@ if (is_array($tcRegistry)) {
 
 $tcYouTubeEnabled = !empty($tcEnabledAddons['youtube_embed']);
 $tcGiphyEnabled = !empty($tcEnabledAddons['giphy_gifs']);
+$tcKlipyEnabled = !empty($tcEnabledAddons['klipy_gifs']);
 ?>
 
 <div class="chat-app">
@@ -160,6 +161,20 @@ window.AK = {
 </script>
 
 <?php
+// KLIPY key database se read hogi.
+// Key save nahi hai ya add-on disabled hai toh blank rahegi.
+$tcKlipyKey = $tcKlipyEnabled
+    ? setting('klipy_api_key')
+    : '';
+
+echo '<script>window.TC_KLIPY_APP_KEY = '
+    . json_encode(
+        $tcKlipyKey,
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+    )
+    . ';</script>';
+?>
+<?php
 // Load CSS and JavaScript from enabled add-ons only.
 // Add-on PHP files are not executed here.
 
@@ -268,6 +283,205 @@ echo '<script>window.TC_GIPHY_API_KEY = '
     )
     . ';</script>';
 ?>
+
+
+<style>
+/* ===== CHAT COMPOSER ===== */
+#sendForm.send-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #2c3442;
+    border-radius: 16px;
+    background: #11151d;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .18);
+}
+
+#sendForm #msgInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border: 1px solid #303949;
+    border-radius: 12px;
+    outline: none;
+    background: #0c1017;
+    color: #fff;
+    font-size: 14px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+#sendForm #msgInput:focus {
+    border-color: #687fff;
+    box-shadow: 0 0 0 3px rgba(104, 127, 255, .12);
+}
+
+/* ===== YOUTUBE, GIF, KLIPY, UPLOAD, SEND ===== */
+#sendForm > button,
+#sendForm > .upload-btn {
+    flex: 0 0 62px;
+    width: 62px;
+    min-width: 62px;
+    height: 62px;
+    min-height: 62px;
+    box-sizing: border-box;
+    padding: 5px;
+
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    border: 1px solid #343d4e;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #252c3a, #171c26);
+    color: #f5f7ff;
+
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    cursor: pointer;
+
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
+}
+
+#sendForm > button:hover,
+#sendForm > .upload-btn:hover {
+    transform: translateY(-2px);
+    border-color: #7888a5;
+    background: linear-gradient(145deg, #343e51, #202735);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, .22);
+}
+
+#sendForm > button:active,
+#sendForm > .upload-btn:active {
+    transform: scale(.96);
+}
+
+/* ===== YOUTUBE BUTTON ===== */
+#sendForm #tcYouTubeOpen {
+    border-color: #5149ec;
+    background: linear-gradient(145deg, #6257ff, #4035d6);
+    color: #fff;
+}
+
+#sendForm #tcYouTubeOpen:hover {
+    border-color: #918aff;
+    box-shadow: 0 0 15px rgba(98, 87, 255, .25);
+}
+
+/* ===== KLIPY BUTTON ===== */
+#sendForm #tcKlipyButton {
+    border-color: #414958;
+    background: linear-gradient(145deg, #202633, #10131b);
+    color: #fff;
+}
+
+#sendForm #tcKlipyButton:hover {
+    border-color: #f5c928;
+    box-shadow: 0 0 13px rgba(245, 201, 40, .16);
+}
+
+/* ===== GIPHY BUTTON ===== */
+#sendForm #tcGiphyOpen {
+    border-color: #b64cf5;
+    background: linear-gradient(145deg, #9b43db, #6329a9);
+    color: #fff;
+}
+
+/* ===== UPLOAD BUTTON ===== */
+#sendForm > .upload-btn {
+    background: linear-gradient(145deg, #252d3b, #171c25);
+}
+
+/* Icon inside upload button, if present */
+#sendForm > .upload-btn svg,
+#sendForm > .upload-btn img {
+    width: 23px;
+    height: 23px;
+    object-fit: contain;
+}
+
+/* ===== SEND BUTTON ===== */
+/* The form's submit button */
+#sendForm > button[type="submit"] {
+    border-color: #168d73;
+    background: linear-gradient(145deg, #18b994, #087b68);
+    color: #fff;
+}
+
+#sendForm > button[type="submit"]:hover {
+    border-color: #4ce6bf;
+    background: linear-gradient(145deg, #20d0a7, #0a9278);
+    box-shadow: 0 0 15px rgba(24, 185, 148, .22);
+}
+
+/* ===== YOUTUBE PANEL ===== */
+.tc-yt-search button,
+.tc-yt-heading button {
+    min-height: 40px;
+    padding: 8px 13px;
+    border: 1px solid #414b5d;
+    border-radius: 9px;
+    background: #222a39;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+.tc-yt-search button:hover,
+.tc-yt-heading button:hover {
+    background: #303b4e;
+    border-color: #7888a5;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+    #sendForm.send-bar {
+        gap: 5px;
+        padding: 6px;
+        border-radius: 12px;
+    }
+
+    #sendForm #msgInput {
+        height: 48px;
+        padding: 0 9px;
+        font-size: 13px;
+    }
+
+    #sendForm > button,
+    #sendForm > .upload-btn {
+        flex-basis: 49px;
+        width: 49px;
+        min-width: 49px;
+        height: 52px;
+        min-height: 52px;
+        gap: 4px;
+        padding: 3px;
+        border-radius: 9px;
+        font-size: 9px;
+    }
+
+    #sendForm > .upload-btn svg,
+    #sendForm > .upload-btn img {
+        width: 20px;
+        height: 20px;
+    }
+}
+</style>
+
 
 <script src="assets/chat.js"></script>
 

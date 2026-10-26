@@ -1,3 +1,4 @@
+
 <?php
 require __DIR__ . '/_layout.php';
 
@@ -32,12 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mb_substr(trim($_POST['announcement'] ?? ''), 0, 500)
     );
 
-    // API key ko tabhi update karein jab nayi key enter ki ho.
-    // Blank field se pehle se saved key delete nahi hogi.
     $youtubeApiKey = trim($_POST['youtube_api_key'] ?? '');
 
     if ($youtubeApiKey !== '') {
         set_setting('youtube_api_key', $youtubeApiKey);
+    }
+
+    // KLIPY: blank field purani key ko preserve karega.
+    $klipyApiKey = trim($_POST['klipy_api_key'] ?? '');
+
+    if ($klipyApiKey !== '') {
+        set_setting('klipy_api_key', $klipyApiKey);
     }
 
     flash('Settings save ho gayi.');
@@ -48,6 +54,7 @@ admin_head('Settings', 'settings.php');
 echo flash();
 
 $youtubeKeySaved = setting('youtube_api_key') !== '';
+$klipyKeySaved = setting('klipy_api_key') !== '';
 ?>
 
 <form class="card narrow" method="post">
@@ -114,16 +121,33 @@ $youtubeKeySaved = setting('youtube_api_key') !== '';
     >
   </label>
 
-  <?php if ($youtubeKeySaved): ?>
-    <p class="muted">
-      API key saved hai. Key change karni ho to nayi key enter karein.
-      Field blank chhodne par purani key rahegi.
-    </p>
-  <?php else: ?>
-    <p class="muted">
-      API key Google Cloud Console se milegi. Abhi key configure nahi hui hai.
-    </p>
-  <?php endif; ?>
+  <p class="muted">
+    <?= $youtubeKeySaved
+      ? 'YouTube key saved hai. Change karne ke liye nayi key enter karein.'
+      : 'YouTube key abhi configure nahi hui hai.' ?>
+  </p>
+
+  <hr>
+
+  <h3>KLIPY GIF Add-on Settings</h3>
+
+  <label>
+    KLIPY App API Key
+    <input
+      type="password"
+      name="klipy_api_key"
+      placeholder="<?= $klipyKeySaved
+        ? 'KLIPY key saved — blank chhodein to same rahegi'
+        : 'KLIPY App Key yahan paste karein' ?>"
+      autocomplete="new-password"
+    >
+  </label>
+
+  <p class="muted">
+    <?= $klipyKeySaved
+      ? 'KLIPY key saved hai. Change karne ke liye nayi key enter karein.'
+      : 'KLIPY key save karne ke baad GIF search configure hogi.' ?>
+  </p>
 
   <button type="submit">Save Settings</button>
 </form>

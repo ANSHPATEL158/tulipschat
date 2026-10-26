@@ -24,7 +24,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 /**
- * Database connection
+ * Database connection  
  */
 function db(): PDO
 {

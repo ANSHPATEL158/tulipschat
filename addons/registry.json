@@ -7,5 +7,14 @@
         "enabled": true,
         "installed_at": "2026-10-24T10:09:26+05:30",
         "updated_at": "2026-10-24T22:13:35+05:30"
+    },
+    "klipy_gifs": {
+        "name": "KLIPY GIFs",
+        "id": "klipy_gifs",
+        "version": "1.0.0",
+        "description": "Chat mein KLIPY GIF search aur sharing.",
+        "enabled": true,
+        "installed_at": "2026-10-26T18:00:00+05:30",
+        "updated_at": "2026-10-26T18:00:00+05:30"
     }
 }
