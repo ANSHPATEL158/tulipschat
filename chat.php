@@ -163,9 +163,9 @@ window.AK = {
 <?php
 // KLIPY key database se read hogi.
 // Key save nahi hai ya add-on disabled hai toh blank rahegi.
-$tcKlipyKey = $tcKlipyEnabled
-    ? setting('klipy_api_key')
-    : '';
+
+$tcKlipyKey = trim((string) setting('klipy_api_key', ''));
+
 
 echo '<script>window.TC_KLIPY_APP_KEY = '
     . json_encode(
@@ -368,7 +368,7 @@ echo '<script>window.TC_GIPHY_API_KEY = '
 #sendForm > .upload-btn:active {
     transform: scale(.96);
 }
-
+registry
 /* ===== YOUTUBE BUTTON ===== */
 #sendForm #tcYouTubeOpen {
     border-color: #5149ec;
