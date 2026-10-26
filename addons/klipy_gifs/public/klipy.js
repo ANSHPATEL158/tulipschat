@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    const API_KEY = window.TC_KLIPY_APP_KEY || '';
+    const API_KEY = String(window.TC_KLIPY_APP_KEY || '').trim();
     const API_BASE = 'https://api.klipy.com/api/v1/';
 
     function getItems(payload) {
@@ -18,7 +18,6 @@
 
         return [];
     }
-
 
     function getGifUrl(item) {
         if (!item || typeof item !== 'object') return '';
@@ -37,17 +36,17 @@
         ];
 
         for (const format of formats) {
-            if (format && typeof format.url === 'string') {
-                if (format.url.startsWith('https://')) {
-                    return format.url;
-                }
+            if (
+                format &&
+                typeof format.url === 'string' &&
+                format.url.startsWith('https://')
+            ) {
+                return format.url;
             }
         }
 
-        console.log('KLIPY item file format:', file);
         return '';
     }
-
 
     function isKlipyUrl(value) {
         try {
@@ -69,16 +68,10 @@
 
         if (!form || !input) return;
 
-        if (!API_KEY) {
-            console.info(
-                'KLIPY: Admin Settings mein API key save karein.'
-            );
-            return;
-        }
-
+        // Prevent duplicate buttons if the script is loaded twice.
         if (document.getElementById('tcKlipyButton')) return;
 
-        // KLIPY button with a custom GIF icon.
+        // Create the KLIPY button regardless of API-key availability.
         const button = document.createElement('button');
         button.type = 'button';
         button.id = 'tcKlipyButton';
@@ -126,14 +119,13 @@
             </form>
 
             <p class="tc-klipy-status" role="status">
-                Trending GIFs
+                Ready to search GIFs.
             </p>
 
             <div class="tc-klipy-results"></div>
             <div class="tc-klipy-brand">Powered by KLIPY</div>
         `;
 
-        // Place the KLIPY button before Send, like the YouTube button.
         const sendButton = form.querySelector('button[type="submit"]');
 
         if (sendButton) {
@@ -151,9 +143,18 @@
 
         async function search(query) {
             results.replaceChildren();
-            status.textContent = 'Loading GIFs...';
 
             const cleanQuery = String(query || '').trim();
+
+            // The UI stays available even when the API key is missing.
+            if (!API_KEY) {
+                status.textContent =
+                    'KLIPY API key configure nahi hai. Admin Settings mein key save karein.';
+                return;
+            }
+
+            status.textContent = 'Loading GIFs...';
+
             const endpoint = cleanQuery ?
                 'gifs/search' :
                 'gifs/trending';
@@ -192,16 +193,16 @@
                         payload.success === false
                     )
                 ) {
-                    throw new Error('KLIPY API returned an unsuccessful result');
+                    throw new Error(
+                        'KLIPY API returned an unsuccessful result'
+                    );
                 }
 
                 const items = getItems(payload);
-                console.log('KLIPY API response:', payload);
-                console.log('KLIPY extracted items:', items);
 
                 if (!items.length) {
                     status.textContent =
-                        'GIFs nahi mile. API response aur access check karein.';
+                        'GIFs nahi mile. API response ya key access check karein.';
                     return;
                 }
 
@@ -230,9 +231,6 @@
                         input.value = src;
                         input.focus();
                         panel.hidden = true;
-
-                        status.textContent =
-                            'GIF selected. Send dabakar share karein.';
                     });
 
                     results.appendChild(choice);
@@ -240,13 +238,13 @@
 
                 if (!results.children.length) {
                     status.textContent =
-                        'GIF URLs pehchane nahi gaye. API response check karein.';
+                        'GIF URLs nahi mile. KLIPY API response format check karein.';
                 }
             } catch (error) {
                 console.error('KLIPY search failed:', error);
 
                 status.textContent =
-                    'GIFs load nahi hue. API key, access aur Console error check karein.';
+                    'GIFs load nahi hue. API key, access ya network check karein.';
             }
         }
 
@@ -274,7 +272,7 @@
             search(searchInput.value);
         });
 
-        // Register KLIPY GIF message renderer.
+        // Register the KLIPY message renderer.
         window.TC_CHAT_ADDONS = window.TC_CHAT_ADDONS || {};
         window.TC_CHAT_ADDONS.renderers =
             window.TC_CHAT_ADDONS.renderers || [];
