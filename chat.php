@@ -79,7 +79,30 @@ if ($tcGiphyEnabled) {
       type="button"
       title="Users"
       aria-label="Toggle users"
-    >&#9776;</button>
+    >&#9776;
+
+<button type="button" onclick="refreshWall()"
+style="padding:4px 8px;
+background:#e75480;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+font-size:11px;
+font-weight:bold;">
+🔄 Refresh Wall
+</button>
+
+
+
+<div id="wall-container" class="wall-scroll">
+    <!-- Your existing PHP wall messages -->
+</div>
+<script>
+function refreshWall() {
+    window.location.reload();
+}
+</script>
 
     <strong><?= e(setting('site_name', 'Chaos Chat')) ?></strong>
 

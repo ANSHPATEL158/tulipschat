@@ -40,8 +40,7 @@
             /^__TC_FILE__:(image|video|document):(uploads\/chat\/[a-f0-9]{32}\.(jpg|png|gif|webp|mp4|webm|mov|pdf|txt|docx|xlsx|pptx))$/i
         );
 
-        return match ?
-            { kind: match[1].toLowerCase(), path: match[2] } :
+        return match ? { kind: match[1].toLowerCase(), path: match[2] } :
             null;
     }
 
@@ -280,8 +279,7 @@
             const renderers =
                 window.TC_CHAT_ADDONS &&
                 Array.isArray(window.TC_CHAT_ADDONS.renderers) ?
-                window.TC_CHAT_ADDONS.renderers :
-                [];
+                window.TC_CHAT_ADDONS.renderers : [];
 
             for (const render of renderers) {
                 try {
@@ -373,7 +371,12 @@
                     box.firstChild.remove();
                 }
 
-                if (stick) box.scrollTop = box.scrollHeight;
+                if (stick) {
+                    box.scrollTo({
+                        top: box.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
                 renderUsers(data.users || []);
             })
             .catch(error => console.error('Chat refresh failed:', error))
@@ -525,4 +528,11 @@
     showReplyBar();
     load();
     setInterval(load, Number(AK.poll) || 2000);
+    const refreshBtn = document.getElementById('refreshPageBtn');
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
 })();
