@@ -374,7 +374,7 @@
                 if (stick) {
                     box.scrollTo({
                         top: box.scrollHeight,
-                        behavior: 'smooth'
+                        behavior: 'instant'
                     });
                 }
                 renderUsers(data.users || []);
