@@ -1,4 +1,3 @@
-
 <?php
 return [
     // Database settings from Render Environment
