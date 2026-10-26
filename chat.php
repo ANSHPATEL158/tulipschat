@@ -1,3 +1,4 @@
+
 <?php
 require __DIR__ . '/core.php';
 
@@ -7,7 +8,12 @@ page_head('Chat');
 $ann = setting('announcement');
 
 $tcAddonRoot = __DIR__ . '/addons';
-$tcRegistryRaw = @file_get_contents($tcAddonRoot . '/registry.json');
+$tcRegistryPath = $tcAddonRoot . '/registry.json';
+
+$tcRegistryRaw = is_file($tcRegistryPath)
+    ? file_get_contents($tcRegistryPath)
+    : false;
+
 $tcRegistry = is_string($tcRegistryRaw)
     ? json_decode($tcRegistryRaw, true)
     : null;
@@ -19,6 +25,7 @@ if (is_array($tcRegistry)) {
         if (
             is_string($tcId)
             && preg_match('/^[a-z0-9][a-z0-9_-]{1,49}$/', $tcId)
+            && is_array($tcInfo)
             && !empty($tcInfo['enabled'])
             && is_dir($tcAddonRoot . '/' . $tcId)
         ) {
@@ -30,6 +37,39 @@ if (is_array($tcRegistry)) {
 $tcYouTubeEnabled = !empty($tcEnabledAddons['youtube_embed']);
 $tcGiphyEnabled = !empty($tcEnabledAddons['giphy_gifs']);
 $tcKlipyEnabled = !empty($tcEnabledAddons['klipy_gifs']);
+
+/*
+ * KLIPY API key:
+ * Admin Settings mein saved key read karein.
+ * API key ko HTML mein safely encode karke expose kiya jata hai.
+ */
+$tcKlipyKey = $tcKlipyEnabled
+    ? trim((string) setting('klipy_api_key', ''))
+    : '';
+
+/*
+ * GIPHY configuration.
+ */
+$tcGiphyKey = '';
+
+if ($tcGiphyEnabled) {
+    $tcConfigPath = $tcAddonRoot . '/giphy_gifs/config.json';
+
+    if (is_file($tcConfigPath)) {
+        $tcConfigRaw = file_get_contents($tcConfigPath);
+        $tcConfig = is_string($tcConfigRaw)
+            ? json_decode($tcConfigRaw, true)
+            : null;
+
+        if (
+            is_array($tcConfig)
+            && isset($tcConfig['api_key'])
+            && is_string($tcConfig['api_key'])
+        ) {
+            $tcGiphyKey = trim($tcConfig['api_key']);
+        }
+    }
+}
 ?>
 
 <div class="chat-app">
@@ -39,9 +79,10 @@ $tcKlipyEnabled = !empty($tcEnabledAddons['klipy_gifs']);
       id="toggleUsers"
       type="button"
       title="Users"
+      aria-label="Toggle users"
     >&#9776;</button>
 
-    <strong><?= e(setting('site_name', 'TulipsChat')) ?></strong>
+    <strong><?= e(setting('site_name', 'Chaos Chat')) ?></strong>
 
     <nav>
       <a href="profile.php">
@@ -73,8 +114,10 @@ $tcKlipyEnabled = !empty($tcEnabledAddons['klipy_gifs']);
       <form id="sendForm" class="send-bar" autocomplete="off">
         <input
           id="msgInput"
-          maxlength="<?= (int)setting('max_length', '500') ?>"
+          name="message"
+          maxlength="<?= (int) setting('max_length', '500') ?>"
           placeholder="Message likhein..."
+          aria-label="Write a message"
           required
         >
 
@@ -154,35 +197,33 @@ $tcKlipyEnabled = !empty($tcEnabledAddons['klipy_gifs']);
 <script>
 window.AK = {
   csrf: <?= json_encode(csrf()) ?>,
-  me: <?= (int)$me['id'] ?>,
+  me: <?= (int) $me['id'] ?>,
   admin: <?= $me['role'] === 'admin' ? 'true' : 'false' ?>,
-  poll: <?= (int)$CFG['poll_ms'] ?>
+  poll: <?= (int) $CFG['poll_ms'] ?>
 };
+
+window.TC_KLIPY_APP_KEY = <?= json_encode(
+    $tcKlipyKey,
+    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+) ?>;
+
+window.TC_GIPHY_API_KEY = <?= json_encode(
+    $tcGiphyKey,
+    JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+) ?>;
 </script>
 
 <?php
-// KLIPY key database se read hogi.
-// Key save nahi hai ya add-on disabled hai toh blank rahegi.
-
-$tcKlipyKey = trim((string) setting('klipy_api_key', ''));
-
-
-echo '<script>window.TC_KLIPY_APP_KEY = '
-    . json_encode(
-        $tcKlipyKey,
-        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-    )
-    . ';</script>';
-?>
-<?php
-// Load CSS and JavaScript from enabled add-ons only.
-// Add-on PHP files are not executed here.
-
+/*
+ * Load CSS and JavaScript from enabled add-ons only.
+ * Add-on PHP files are not executed here.
+ */
 if (is_array($tcRegistry)) {
     foreach ($tcRegistry as $tcId => $tcInfo) {
         if (
             !is_string($tcId)
             || !preg_match('/^[a-z0-9][a-z0-9_-]{1,49}$/', $tcId)
+            || !is_array($tcInfo)
             || empty($tcInfo['enabled'])
         ) {
             continue;
@@ -200,90 +241,74 @@ if (is_array($tcRegistry)) {
             continue;
         }
 
-        $tcFiles = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(
-                $tcPublic,
-                FilesystemIterator::SKIP_DOTS
-            )
-        );
-
-        foreach ($tcFiles as $tcFile) {
-            if (!$tcFile->isFile() || $tcFile->isLink()) {
-                continue;
-            }
-
-            $tcExt = strtolower($tcFile->getExtension());
-
-            if (!in_array($tcExt, ['css', 'js'], true)) {
-                continue;
-            }
-
-            $tcReal = realpath($tcFile->getPathname());
-
-            if (
-                !$tcReal
-                || !str_starts_with(
-                    $tcReal,
-                    $tcPublic . DIRECTORY_SEPARATOR
+        try {
+            $tcFiles = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    $tcPublic,
+                    FilesystemIterator::SKIP_DOTS
                 )
-            ) {
-                continue;
-            }
-
-            $tcRelative = str_replace(
-                DIRECTORY_SEPARATOR,
-                '/',
-                substr($tcReal, strlen($tcDir) + 1)
             );
 
-            $tcUrl = base_url()
-                . 'addons/'
-                . rawurlencode($tcId)
-                . '/'
-                . implode(
-                    '/',
-                    array_map(
-                        'rawurlencode',
-                        explode('/', $tcRelative)
+            foreach ($tcFiles as $tcFile) {
+                if (!$tcFile->isFile() || $tcFile->isLink()) {
+                    continue;
+                }
+
+                $tcExt = strtolower($tcFile->getExtension());
+
+                if (!in_array($tcExt, ['css', 'js'], true)) {
+                    continue;
+                }
+
+                $tcReal = realpath($tcFile->getPathname());
+
+                if (
+                    !$tcReal
+                    || !str_starts_with(
+                        $tcReal,
+                        $tcPublic . DIRECTORY_SEPARATOR
                     )
+                ) {
+                    continue;
+                }
+
+                $tcRelative = str_replace(
+                    DIRECTORY_SEPARATOR,
+                    '/',
+                    substr($tcReal, strlen($tcDir) + 1)
                 );
 
-            if ($tcExt === 'css') {
-                echo '<link rel="stylesheet" href="' . e($tcUrl) . '">' . "\n";
-            } else {
-                echo '<script src="' . e($tcUrl) . '"></script>' . "\n";
+                $tcUrl = base_url()
+                    . 'addons/'
+                    . rawurlencode($tcId)
+                    . '/'
+                    . implode(
+                        '/',
+                        array_map(
+                            'rawurlencode',
+                            explode('/', $tcRelative)
+                        )
+                    );
+
+                if ($tcExt === 'css') {
+                    echo '<link rel="stylesheet" href="'
+                        . e($tcUrl)
+                        . '">' . "\n";
+                } else {
+                    echo '<script src="'
+                        . e($tcUrl)
+                        . '"></script>' . "\n";
+                }
             }
+        } catch (Throwable $e) {
+            error_log(
+                'Chat add-on asset loading failed for '
+                . $tcId . ': ' . $e->getMessage()
+            );
         }
     }
 }
-
-// Read the existing GIPHY configuration, if enabled.
-$tcGiphyKey = '';
-
-if ($tcGiphyEnabled) {
-    $tcConfigPath = $tcAddonRoot . '/giphy_gifs/config.json';
-
-    $tcConfig = is_file($tcConfigPath)
-        ? json_decode((string)file_get_contents($tcConfigPath), true)
-        : null;
-
-    if (
-        is_array($tcConfig)
-        && isset($tcConfig['api_key'])
-        && is_string($tcConfig['api_key'])
-    ) {
-        $tcGiphyKey = $tcConfig['api_key'];
-    }
-}
-
-echo '<script>window.TC_GIPHY_API_KEY = '
-    . json_encode(
-        $tcGiphyKey,
-        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-    )
-    . ';</script>';
 ?>
-
 
 <style>
 /* ===== CHAT COMPOSER ===== */
@@ -321,7 +346,7 @@ echo '<script>window.TC_GIPHY_API_KEY = '
     box-shadow: 0 0 0 3px rgba(104, 127, 255, .12);
 }
 
-/* ===== YOUTUBE, GIF, KLIPY, UPLOAD, SEND ===== */
+/* ===== COMPOSER BUTTONS ===== */
 #sendForm > button,
 #sendForm > .upload-btn {
     flex: 0 0 62px;
@@ -331,24 +356,20 @@ echo '<script>window.TC_GIPHY_API_KEY = '
     min-height: 62px;
     box-sizing: border-box;
     padding: 5px;
-
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 5px;
-
     border: 1px solid #343d4e;
     border-radius: 13px;
     background: linear-gradient(145deg, #252c3a, #171c26);
     color: #f5f7ff;
-
     font-size: 11px;
     font-weight: 700;
     line-height: 1.1;
     text-align: center;
     cursor: pointer;
-
     transition:
         transform .18s ease,
         background .18s ease,
@@ -368,7 +389,7 @@ echo '<script>window.TC_GIPHY_API_KEY = '
 #sendForm > .upload-btn:active {
     transform: scale(.96);
 }
-registry
+
 /* ===== YOUTUBE BUTTON ===== */
 #sendForm #tcYouTubeOpen {
     border-color: #5149ec;
@@ -405,7 +426,6 @@ registry
     background: linear-gradient(145deg, #252d3b, #171c25);
 }
 
-/* Icon inside upload button, if present */
 #sendForm > .upload-btn svg,
 #sendForm > .upload-btn img {
     width: 23px;
@@ -414,7 +434,6 @@ registry
 }
 
 /* ===== SEND BUTTON ===== */
-/* The form's submit button */
 #sendForm > button[type="submit"] {
     border-color: #168d73;
     background: linear-gradient(145deg, #18b994, #087b68);
@@ -481,7 +500,6 @@ registry
     }
 }
 </style>
-
 
 <script src="assets/chat.js"></script>
 

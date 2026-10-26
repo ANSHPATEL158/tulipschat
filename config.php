@@ -1,19 +1,16 @@
+
 <?php
 
 return [
-    // Database configuration
-    // Render Environment mein DB_DRIVER=pgsql set hona chahiye.
-   'db_driver' => getenv('DB_DRIVER') ?: 'pgsql',
+    // Local XAMPP MySQL database
+    'db_driver' => 'mysql',
+    'db_host' => '127.0.0.1',
+    'db_port' => '3306',
+    'db_name' => 'tulipschat',
+    'db_user' => 'root',
+    'db_pass' => '',
 
-    // Render PostgreSQL connection
-    'db_host' => getenv('DB_HOST') ?: '',
-    'db_port' => getenv('DB_PORT') ?: '5432',
-    'db_name' => getenv('DB_NAME') ?: 'tulipschat',
-    'db_user' => getenv('DB_USER') ?: '',
-    'db_pass' => getenv('DB_PASS') ?: '',
-    'db_sslmode' => getenv('DB_SSLMODE') ?: 'require',
-
-    // SQLite configuration (agar local development mein use ho)
+    // SQLite fallback path
     'sqlite_path' => __DIR__ . '/data/chat.sqlite',
 
     // Chat settings

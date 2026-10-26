@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     set_setting(
         'site_name',
-        trim($_POST['site_name'] ?? '') ?: 'TulipsChat'
+        trim($_POST['site_name'] ?? '') ?: 'Chaos Chat'
     );
 
     set_setting(
@@ -33,13 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mb_substr(trim($_POST['announcement'] ?? ''), 0, 500)
     );
 
+    // YouTube key: blank field preserves the existing key.
     $youtubeApiKey = trim($_POST['youtube_api_key'] ?? '');
 
     if ($youtubeApiKey !== '') {
         set_setting('youtube_api_key', $youtubeApiKey);
     }
 
-    // KLIPY: blank field purani key ko preserve karega.
+    // KLIPY key: blank field preserves the existing key.
     $klipyApiKey = trim($_POST['klipy_api_key'] ?? '');
 
     if ($klipyApiKey !== '') {
@@ -60,49 +61,55 @@ $klipyKeySaved = setting('klipy_api_key') !== '';
 <form class="card narrow" method="post">
   <?= csrf_field() ?>
 
+  <h3>General Settings</h3>
+
   <label>
-    Site name
+    Site Name
     <input
       name="site_name"
-      value="<?= e(setting('site_name', 'TulipsChat')) ?>"
+      value="<?= e(setting('site_name', 'Chaos Chat')) ?>"
+      maxlength="100"
+      required
     >
   </label>
 
-  <label class="check">
+  <label>
     <input
       type="checkbox"
       name="allow_register"
       value="1"
-      <?= setting('allow_register') === '1' ? 'checked' : '' ?>
+      <?= setting('allow_register', '1') === '1' ? 'checked' : '' ?>
     >
-    Naye users register kar sakte hain
+    Allow new registrations
   </label>
 
   <label>
-    Message max length
+    Maximum Message Length
     <input
       type="number"
       name="max_length"
       min="50"
       max="5000"
-      value="<?= e(setting('max_length', '500')) ?>"
+      value="<?= (int)setting('max_length', '500') ?>"
+      required
     >
   </label>
 
   <label>
-    Chat kholne par kitne purane messages dikhen
+    Chat History Limit
     <input
       type="number"
       name="history"
       min="10"
       max="200"
-      value="<?= e(setting('history', '50')) ?>"
+      value="<?= (int)setting('history', '50') ?>"
+      required
     >
   </label>
 
   <label>
-    Announcement (chat ke upar)
-    <textarea name="announcement" rows="3"><?= e(setting('announcement')) ?></textarea>
+    Announcement
+    <textarea name="announcement" maxlength="500"><?= e(setting('announcement')) ?></textarea>
   </label>
 
   <hr>
@@ -115,7 +122,7 @@ $klipyKeySaved = setting('klipy_api_key') !== '';
       type="password"
       name="youtube_api_key"
       placeholder="<?= $youtubeKeySaved
-        ? 'API key saved — blank chhodein to same rahegi'
+        ? 'Key saved — blank chhodein to same rahegi'
         : 'YouTube API key yahan paste karein' ?>"
       autocomplete="new-password"
     >
@@ -137,7 +144,7 @@ $klipyKeySaved = setting('klipy_api_key') !== '';
       type="password"
       name="klipy_api_key"
       placeholder="<?= $klipyKeySaved
-        ? 'KLIPY key saved — blank chhodein to same rahegi'
+        ? 'Key saved — blank chhodein to same rahegi'
         : 'KLIPY App Key yahan paste karein' ?>"
       autocomplete="new-password"
     >
