@@ -49,10 +49,16 @@
             body: fd,
             headers: { 'X-CSRF': AK.csrf }
         }).then(async function(response) {
+            const raw = await response.text();
+
+            console.log('AJAX ACTION:', act);
+            console.log('AJAX STATUS:', response.status);
+            console.log('AJAX RESPONSE:', raw.slice(0, 2000));
+
             let result;
 
             try {
-                result = await response.json();
+                result = JSON.parse(raw);
             } catch (_) {
                 throw new Error('Server se valid JSON response nahi mila.');
             }
