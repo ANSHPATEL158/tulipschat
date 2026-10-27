@@ -526,6 +526,13 @@ if ($act === 'send') {
 | UPLOAD IMAGE, VIDEO OR DOCUMENT
 |--------------------------------------------------------------------------
 */
+
+/*
+|--------------------------------------------------------------------------
+| UPLOAD IMAGE, VIDEO OR DOCUMENT
+| Photos/GIFs: 10 MB | Videos: 50 MB | Documents: 10 MB
+|--------------------------------------------------------------------------
+*/
 if ($act === 'upload') {
     $pmTo = (int)($_POST['to'] ?? 0);
 
@@ -538,147 +545,171 @@ if ($act === 'upload') {
     }
 
     if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
-        out(['error' => 'File select karein']);
+        out([
+            'error' => 'File receive nahi hui. PHP post_max_size setting check karein.'
+        ]);
     }
 
     $file = $_FILES['file'];
+    $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
 
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
-
+    if ($uploadError !== UPLOAD_ERR_OK) {
         $message = match ($uploadError) {
             UPLOAD_ERR_INI_SIZE,
-            UPLOAD_ERR_FORM_SIZE => 'File PHP upload limit se badi hai',
-            UPLOAD_ERR_PARTIAL => 'File poori upload nahi hui',
-            UPLOAD_ERR_NO_FILE => 'File select karein',
-            UPLOAD_ERR_NO_TMP_DIR => 'PHP temporary folder missing hai',
-            UPLOAD_ERR_CANT_WRITE => 'Server file write nahi kar saka',
-            default => 'Upload fail hua. File size aur PHP settings check karein',
+            UPLOAD_ERR_FORM_SIZE => 'Server upload limit se file badi hai.',
+            UPLOAD_ERR_PARTIAL => 'File poori upload nahi hui.',
+            UPLOAD_ERR_NO_FILE => 'File select karein.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server ka temporary upload folder missing hai.',
+            UPLOAD_ERR_CANT_WRITE => 'Server file write nahi kar saka.',
+            UPLOAD_ERR_EXTENSION => 'Server extension ne upload rok diya.',
+            default => 'Upload fail hua. File size aur server settings check karein.',
         };
 
         out(['error' => $message]);
     }
 
-    if (
-        empty($file['tmp_name']) ||
-        !is_uploaded_file($file['tmp_name'])
-    ) {
-        out(['error' => 'Invalid upload']);
+    $tmp = (string)($file['tmp_name'] ?? '');
+    $size = (int)($file['size'] ?? 0);
+
+    if ($tmp === '' || !is_uploaded_file($tmp) || $size < 1) {
+        out(['error' => 'Invalid ya empty upload file.']);
     }
 
     if (!class_exists('finfo')) {
-        out(['error' => 'PHP Fileinfo extension enabled nahi hai']);
-    }
-
-    $size = (int)($file['size'] ?? 0);
-
-    if ($size < 1) {
-        out(['error' => 'File khali hai']);
+        out(['error' => 'PHP Fileinfo extension enabled nahi hai.']);
     }
 
     $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = $finfo->file($file['tmp_name']);
+    $mime = $finfo->file($tmp);
 
     $allowed = [
+        // Images: 10 MB
         'image/jpeg' => [
-            'ext' => 'jpg', 'kind' => 'image',
-            'max' => 5 * 1024 * 1024,
+            'ext' => 'jpg',
+            'kind' => 'image',
+            'max' => 20 * 1024 * 1024,
         ],
         'image/png' => [
-            'ext' => 'png', 'kind' => 'image',
-            'max' => 5 * 1024 * 1024,
+            'ext' => 'png',
+            'kind' => 'image',
+            'max' => 20 * 1024 * 1024,
         ],
         'image/gif' => [
-            'ext' => 'gif', 'kind' => 'image',
-            'max' => 5 * 1024 * 1024,
+            'ext' => 'gif',
+            'kind' => 'image',
+            'max' => 20 * 1024 * 1024,
         ],
         'image/webp' => [
-            'ext' => 'webp', 'kind' => 'image',
-            'max' => 5 * 1024 * 1024,
+            'ext' => 'webp',
+            'kind' => 'image',
+            'max' => 20 * 1024 * 1024,
         ],
 
+        // Videos: 50 MB
         'video/mp4' => [
-            'ext' => 'mp4', 'kind' => 'video',
-            'max' => 25 * 1024 * 1024,
+            'ext' => 'mp4',
+            'kind' => 'video',
+            'max' => 50 * 1024 * 1024,
         ],
         'video/webm' => [
-            'ext' => 'webm', 'kind' => 'video',
-            'max' => 25 * 1024 * 1024,
+            'ext' => 'webm',
+            'kind' => 'video',
+            'max' => 100 * 1024 * 1024,
         ],
         'video/quicktime' => [
-            'ext' => 'mov', 'kind' => 'video',
-            'max' => 25 * 1024 * 1024,
+            'ext' => 'mov',
+            'kind' => 'video',
+            'max' => 100 * 1024 * 1024,
         ],
 
+        // Documents: existing 10 MB limit
         'application/pdf' => [
-            'ext' => 'pdf', 'kind' => 'document',
+            'ext' => 'pdf',
+            'kind' => 'document',
             'max' => 10 * 1024 * 1024,
         ],
         'text/plain' => [
-            'ext' => 'txt', 'kind' => 'document',
+            'ext' => 'txt',
+            'kind' => 'document',
             'max' => 10 * 1024 * 1024,
         ],
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => [
-            'ext' => 'docx', 'kind' => 'document',
+            'ext' => 'docx',
+            'kind' => 'document',
             'max' => 10 * 1024 * 1024,
         ],
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => [
-            'ext' => 'xlsx', 'kind' => 'document',
+            'ext' => 'xlsx',
+            'kind' => 'document',
             'max' => 10 * 1024 * 1024,
         ],
         'application/vnd.openxmlformats-officedocument.presentationml.presentation' => [
-            'ext' => 'pptx', 'kind' => 'document',
+            'ext' => 'pptx',
+            'kind' => 'document',
             'max' => 10 * 1024 * 1024,
         ],
     ];
 
     if (!is_string($mime) || !isset($allowed[$mime])) {
-        out(['error' => 'Sirf supported image, video aur document files allowed hain']);
+        out([
+            'error' => 'Unsupported file type. JPG, PNG, GIF, WEBP, MP4, WEBM, MOV aur supported documents allowed hain.'
+        ]);
     }
 
     $info = $allowed[$mime];
 
     if ($size > $info['max']) {
         $limitMB = (int)($info['max'] / (1024 * 1024));
-        out(['error' => "Is type ki file maximum {$limitMB} MB ho sakti hai"]);
+
+        out([
+            'error' => $info['kind'] === 'image'
+                ? 'Photo/GIF ki maximum limit 10 MB hai.'
+                : ($info['kind'] === 'video'
+                    ? 'Video ki maximum limit 50 MB hai.'
+                    : "Document ki maximum limit {$limitMB} MB hai.")
+        ]);
     }
 
     $dir = __DIR__ . '/uploads/chat';
 
-    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-        out(['error' => 'Upload folder create nahi hua']);
+    if (
+        !is_dir($dir) &&
+        !mkdir($dir, 0755, true) &&
+        !is_dir($dir)
+    ) {
+        out(['error' => 'Upload folder create nahi hua.']);
     }
 
-    // Block execution of uploaded scripts.
+    // Prevent execution of uploaded scripts.
     $htaccess = $dir . '/.htaccess';
 
     if (!is_file($htaccess)) {
         $rules = "Options -ExecCGI\n"
-               . "<FilesMatch \"\\.(php[0-9]*|phtml|phar|cgi|pl|py|sh)$\">\n"
-               . "Require all denied\n"
-               . "</FilesMatch>\n";
+            . "<FilesMatch \"\\.(php[0-9]*|phtml|phar|cgi|pl|py|sh)$\">\n"
+            . "Require all denied\n"
+            . "</FilesMatch>\n";
 
         if (file_put_contents($htaccess, $rules, LOCK_EX) === false) {
-            out(['error' => 'Upload folder security setup fail hua']);
+            out(['error' => 'Upload folder security setup fail hua.']);
         }
     }
 
     try {
         $filename = bin2hex(random_bytes(16)) . '.' . $info['ext'];
     } catch (Throwable $e) {
-        out(['error' => 'Secure filename create nahi hua']);
+        out(['error' => 'Secure filename create nahi hua.']);
     }
 
     $destination = $dir . '/' . $filename;
 
-    if (!move_uploaded_file($file['tmp_name'], $destination)) {
-        out(['error' => 'File save nahi hui']);
+    if (!move_uploaded_file($tmp, $destination)) {
+        out(['error' => 'File server par save nahi hui.']);
     }
 
     $message = '__TC_FILE__:'
-             . $info['kind']
-             . ':uploads/chat/'
-             . $filename;
+        . $info['kind']
+        . ':uploads/chat/'
+        . $filename;
 
     try {
         if ($pmTo > 0) {
@@ -706,13 +737,14 @@ if ($act === 'upload') {
         }
     } catch (Throwable $e) {
         @unlink($destination);
-        error_log('TulipsChat upload DB error: ' . $e->getMessage());
+        error_log('Chaos Chat upload DB error: ' . $e->getMessage());
 
-        out(['error' => 'File database mein save nahi hui']);
+        out(['error' => 'File database mein save nahi hui. Server logs check karein.']);
     }
 
     out(['ok' => 1]);
 }
+
 
 /*
 |--------------------------------------------------------------------------
