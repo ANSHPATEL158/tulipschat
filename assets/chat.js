@@ -290,6 +290,7 @@
         }
 
         if (count) count.textContent = String(list.length);
+        usersBox.dataset.onlineCount = String(list.length);
         usersBox.textContent = '';
 
         list.forEach(function(user) {
@@ -673,6 +674,7 @@
         box.append(row);
     }
 
+
     // Fetch messages and online users.
     async function load() {
         if (busy) return;
@@ -684,19 +686,42 @@
             .map(function(node) {
                 return node.dataset.id;
             })
+            .filter(Boolean)
             .join(',');
 
         try {
             const response = await fetch(
-                'ajax.php?act=fetch&last=' + lastId +
-                '&visible=' + encodeURIComponent(visible), { cache: 'no-store' }
+                'ajax.php?act=fetch&last=' + encodeURIComponent(lastId) +
+                '&visible=' + encodeURIComponent(visible) +
+                '&_=' + Date.now(), {
+                    method: 'GET',
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                }
             );
 
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
+            const raw = await response.text();
+
+            let data;
+
+            try {
+                data = JSON.parse(raw);
+            } catch (parseError) {
+                console.error('FETCH returned invalid JSON:', {
+                    status: response.status,
+                    url: response.url,
+                    response: raw.slice(0, 3000)
+                });
+                throw new Error(
+                    'Server se valid JSON response nahi mila. F12 Console check karein.'
+                );
             }
 
-            const data = await response.json();
+            if (!response.ok) {
+                console.error('FETCH HTTP error:', response.status, data);
+                throw new Error(data.error || 'HTTP ' + response.status);
+            }
 
             if (data.error === 'logout') {
                 location.href = 'login.php';
@@ -706,6 +731,11 @@
             if (data.error) {
                 console.error('Chat fetch error:', data.error);
                 return;
+            }
+
+            if (!Array.isArray(data.messages) || !Array.isArray(data.users)) {
+                console.error('Unexpected fetch response:', data);
+                throw new Error('Server response mein messages ya users array missing hai.');
             }
 
             const stick = nearBottom() || lastId === 0;
@@ -721,7 +751,7 @@
                 if (menu) menu.remove();
             });
 
-            (data.messages || []).forEach(function(message) {
+            data.messages.forEach(function(message) {
                 addMsg(message);
                 lastId = Math.max(lastId, Number(message.id) || 0);
             });
@@ -734,7 +764,6 @@
                     const oldMenu = document.querySelector(
                         '.tc-message-actions[data-message-id="' + oldId + '"]'
                     );
-
                     if (oldMenu) oldMenu.remove();
                 }
 
@@ -743,17 +772,15 @@
 
             if (stick) box.scrollTop = box.scrollHeight;
 
-            if (Array.isArray(data.users)) {
-                renderUsers(data.users);
-            } else {
-                console.error('Fetch response has no users array:', data);
-            }
+            renderUsers(data.users);
+
         } catch (error) {
             console.error('Chat refresh failed:', error);
         } finally {
             busy = false;
         }
     }
+
 
     // Upload controls.
     const fileInput = el('input');
