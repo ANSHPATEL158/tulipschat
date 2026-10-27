@@ -23,7 +23,6 @@
         if (!item || typeof item !== 'object') return '';
 
         const file = item.file || {};
-
         const formats = [
             file.md && file.md.gif,
             file.hd && file.hd.gif,
@@ -68,10 +67,10 @@
 
         if (!form || !input) return;
 
-        // Prevent duplicate buttons if the script is loaded twice.
+        // Prevent duplicate initialization.
         if (document.getElementById('tcKlipyButton')) return;
 
-        // Create the KLIPY button regardless of API-key availability.
+        // Create KLIPY button.
         const button = document.createElement('button');
         button.type = 'button';
         button.id = 'tcKlipyButton';
@@ -97,9 +96,10 @@
             <span>KLIPY</span>
         `;
 
+        // Create GIF popup.
         const panel = document.createElement('section');
         panel.id = 'tcKlipyPanel';
-        panel.className = 'tc-klipy-panel';
+        panel.className = 'tc-klipy-panel tc-klipy-modal';
         panel.hidden = true;
 
         panel.innerHTML = `
@@ -126,6 +126,7 @@
             <div class="tc-klipy-brand">Powered by KLIPY</div>
         `;
 
+        // Add button to composer.
         const sendButton = form.querySelector('button[type="submit"]');
 
         if (sendButton) {
@@ -134,30 +135,33 @@
             form.appendChild(button);
         }
 
-        form.parentNode.insertBefore(panel, form.nextSibling);
+        // Put popup directly under body so composer overflow
+        // does not clip it.
+        document.body.appendChild(panel);
 
         const searchForm = panel.querySelector('.tc-klipy-search');
         const searchInput = searchForm.querySelector('input');
         const status = panel.querySelector('.tc-klipy-status');
         const results = panel.querySelector('.tc-klipy-results');
+        const closeButton = panel.querySelector('[data-close]');
+
+        let requestNumber = 0;
 
         async function search(query) {
+            const currentRequest = ++requestNumber;
             results.replaceChildren();
 
             const cleanQuery = String(query || '').trim();
 
-            // The UI stays available even when the API key is missing.
             if (!API_KEY) {
                 status.textContent =
-                    'KLIPY API key configure nahi hai. Admin Settings mein key save karein.';
+                    'KLIPY API key missing. Admin Settings mein API key configure karo.';
                 return;
             }
 
             status.textContent = 'Loading GIFs...';
 
-            const endpoint = cleanQuery ?
-                'gifs/search' :
-                'gifs/trending';
+            const endpoint = cleanQuery ? 'gifs/search' : 'gifs/trending';
 
             const url = new URL(
                 encodeURIComponent(API_KEY) + '/' + endpoint,
@@ -175,9 +179,7 @@
             try {
                 const response = await fetch(url.toString(), {
                     method: 'GET',
-                    headers: {
-                        Accept: 'application/json'
-                    }
+                    headers: { Accept: 'application/json' }
                 });
 
                 if (!response.ok) {
@@ -186,6 +188,8 @@
 
                 const payload = await response.json();
 
+                if (currentRequest !== requestNumber) return;
+
                 if (
                     payload &&
                     (
@@ -193,26 +197,19 @@
                         payload.success === false
                     )
                 ) {
-                    throw new Error(
-                        'KLIPY API returned an unsuccessful result'
-                    );
+                    throw new Error('KLIPY API returned an unsuccessful result');
                 }
 
                 const items = getItems(payload);
 
                 if (!items.length) {
                     status.textContent =
-                        'GIFs nahi mile. API response ya key access check karein.';
+                        'GIFs nahi mile. API key, access aur API response check karo.';
                     return;
                 }
 
-                status.textContent = cleanQuery ?
-                    'Search results' :
-                    'Trending GIFs';
-
                 items.forEach(function(item) {
                     const src = getGifUrl(item);
-
                     if (!src) return;
 
                     const choice = document.createElement('button');
@@ -228,7 +225,22 @@
                     choice.appendChild(image);
 
                     choice.addEventListener('click', function() {
-                        input.value = src;
+                        const gifUrl = src;
+
+                        button.disabled = true;
+
+                        window.TC_SEND_CHAT_MESSAGE(gifUrl)
+                            .then(function(sent) {
+                                if (sent) {
+                                    panel.hidden = true;
+                                }
+                            })
+                            .finally(function() {
+                                button.disabled = false;
+                            });
+                        input.dispatchEvent(
+                            new Event('input', { bubbles: true })
+                        );
                         input.focus();
                         panel.hidden = true;
                     });
@@ -236,22 +248,32 @@
                     results.appendChild(choice);
                 });
 
-                if (!results.children.length) {
-                    status.textContent =
-                        'GIF URLs nahi mile. KLIPY API response format check karein.';
-                }
-            } catch (error) {
-                console.error('KLIPY search failed:', error);
+                status.textContent = results.children.length ?
+                    (cleanQuery ? 'Search results' : 'Trending GIFs') :
+                    'GIF URLs nahi mile. KLIPY API response format check karo.';
 
+            } catch (error) {
+                if (currentRequest !== requestNumber) return;
+
+                console.error('KLIPY search failed:', error);
                 status.textContent =
-                    'GIFs load nahi hue. API key, access ya network check karein.';
+                    'GIFs load nahi hue. Console mein error aur API key/access check karo.';
             }
         }
 
+        // Only ONE click handler.
         button.addEventListener('click', function() {
-            panel.hidden = !panel.hidden;
+            const willOpen = panel.hidden;
 
-            if (!panel.hidden) {
+            // Close YouTube popup if it is open.
+            const youtubePanel = document.getElementById('tcYouTubePanel');
+            if (youtubePanel) {
+                youtubePanel.hidden = true;
+            }
+
+            panel.hidden = !willOpen;
+
+            if (willOpen) {
                 if (!results.children.length) {
                     search('');
                 }
@@ -260,30 +282,25 @@
             }
         });
 
-        panel.querySelector('[data-close]').addEventListener(
-            'click',
-            function() {
-                panel.hidden = true;
-            }
-        );
+        closeButton.addEventListener('click', function() {
+            panel.hidden = true;
+        });
 
         searchForm.addEventListener('submit', function(event) {
             event.preventDefault();
             search(searchInput.value);
         });
 
-        // Register the KLIPY message renderer.
+        // Register message renderer for sent KLIPY GIF URLs.
         window.TC_CHAT_ADDONS = window.TC_CHAT_ADDONS || {};
         window.TC_CHAT_ADDONS.renderers =
             window.TC_CHAT_ADDONS.renderers || [];
 
         window.TC_CHAT_ADDONS.renderers.push(function(body, message) {
             const text = message && message.text;
-
             if (typeof text !== 'string') return false;
 
             const gifUrl = text.trim();
-
             if (!isKlipyUrl(gifUrl)) return false;
 
             const image = document.createElement('img');

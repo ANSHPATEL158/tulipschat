@@ -1,0 +1,16 @@
+{
+    "name": "Normal Lite",
+    "page_bg": "#f5f5f5",
+    "panel_bg": "#e85454",
+    "message_bg": "#376fc8",
+    "text_color": "#222222",
+    "muted_color": "#666666",
+    "accent": "#555555",
+    "accent2": "#333333",
+    "button_bg": "#444444",
+    "button_text": "#ffffff",
+    "border_color": "#dddddd",
+    "wall_image": "",
+    "message_radius": 10,
+    "glow": false
+}

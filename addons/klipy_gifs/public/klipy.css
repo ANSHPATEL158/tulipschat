@@ -213,3 +213,58 @@
         height: 110px;
     }
 }
+
+
+/* KLIPY floating popup */
+
+#tcKlipyPanel.tc-klipy-modal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%);
+    width: min(520px, calc(100vw - 28px));
+    max-height: min(620px, calc(100vh - 40px));
+    overflow-y: auto;
+    z-index: 99999;
+    padding: 16px;
+    box-sizing: border-box;
+    border: 1px solid #563a86;
+    border-radius: 18px;
+    background: #0b0b16;
+    color: #fff;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, .65);
+}
+
+#tcKlipyPanel[hidden] {
+    display: none !important;
+}
+
+#tcKlipyPanel .tc-klipy-results {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#tcKlipyPanel .tc-klipy-choice {
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #29213e;
+    border-radius: 10px;
+    background: #151323;
+    cursor: pointer;
+}
+
+#tcKlipyPanel .tc-klipy-choice img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+@media (max-width: 480px) {
+    #tcKlipyPanel .tc-klipy-results {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

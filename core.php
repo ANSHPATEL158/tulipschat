@@ -337,17 +337,141 @@ if (
 /**
  * Page header
  */
+
 function page_head(string $title, bool $admin = false): void
 {
     $site = installed()
-        ? setting('site_name', 'TulipsChat')
-        : 'TulipsChat';
+        ? setting('site_name', 'Chaos Chat')
+        : 'Chaos Chat';
+
+    $chatTheme = require __DIR__ . '/theme-loader.php';
+
+    $pageBg    = e($chatTheme['page_bg']);
+    $panelBg   = e($chatTheme['panel_bg']);
+    $messageBg = e($chatTheme['message_bg']);
+    $textColor = e($chatTheme['text_color']);
+    $muted     = e($chatTheme['muted_color']);
+    $accent    = e($chatTheme['accent']);
+    $accent2   = e($chatTheme['accent2']);
+    $buttonBg  = e($chatTheme['button_bg']);
+    $buttonText = e($chatTheme['button_text']);
+    $border    = e($chatTheme['border_color']);
+    $radius    = (int) $chatTheme['message_radius'];
+
+    $wallImage = '';
+    if ($chatTheme['wall_image'] !== '') {
+        $wallImage = 'url(' . json_encode(
+            $chatTheme['wall_image'],
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+        ) . ')';
+    }
 
     echo '<!doctype html><html lang="en"><head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
     echo '<title>' . e($title) . ' - ' . e($site) . '</title>';
+    echo '<meta name="theme-color" content="' . $panelBg . '">';
     echo '<link rel="stylesheet" href="' . e(base_url()) . 'assets/style.css">';
+    echo '<link rel="stylesheet" href="' . e(base_url()) . 'assets/theme.css?v=2">';
+
+    echo '<style>
+    :root {
+        --bg: ' . $pageBg . ';
+        --card: ' . $panelBg . ';
+        --line: ' . $border . ';
+        --text: ' . $textColor . ';
+        --muted: ' . $muted . ';
+        --pri: ' . $accent . ';
+        --pri2: ' . $messageBg . ';
+        --theme-page-bg: ' . $pageBg . ';
+        --theme-panel-bg: ' . $panelBg . ';
+        --theme-message-bg: ' . $messageBg . ';
+        --theme-accent: ' . $accent . ';
+        --theme-accent2: ' . $accent2 . ';
+        --theme-button-bg: ' . $buttonBg . ';
+        --theme-button-text: ' . $buttonText . ';
+        --theme-radius: ' . $radius . 'px;
+    }
+
+    body {
+        background-color: var(--theme-page-bg);
+        color: var(--text);
+    }
+
+    .topbar,
+    .send-bar,
+    .userlist,
+    .ul-head {
+        background-color: var(--theme-panel-bg);
+        color: var(--text);
+    }
+
+    .topbar nav a {
+        color: var(--text);
+    }
+
+    .messages {
+        background-color: var(--theme-page-bg);
+        ' . ($wallImage !== '' ? 'background-image: ' . $wallImage . ';' : '') . '
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+
+    .msg-body {
+        background-color: var(--theme-message-bg);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: var(--theme-radius);
+        box-shadow: none;
+    }
+
+    .msg.mine .msg-body {
+        background-color: var(--theme-panel-bg);
+    }
+
+    .msg-head .time,
+    .muted {
+        color: var(--muted);
+    }
+
+    .announce {
+        background-color: var(--theme-panel-bg);
+        color: var(--text);
+        border-color: var(--line);
+    }
+
+    button,
+    .btn {
+        background-color: var(--theme-button-bg);
+        color: var(--theme-button-text);
+        box-shadow: none;
+    }
+
+    input,
+    select,
+    textarea {
+        background-color: var(--theme-panel-bg);
+        color: var(--text);
+        border-color: var(--line);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline-color: var(--line);
+        border-color: var(--theme-accent);
+    }
+
+    a {
+        color: var(--theme-accent);
+    }
+
+    .msg-head .uname {
+        color: var(--theme-accent2);
+    }
+    </style>';
+
     echo '</head><body' . ($admin ? ' class="admin"' : '') . '>';
 }
 

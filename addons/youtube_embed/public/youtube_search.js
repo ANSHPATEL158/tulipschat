@@ -6,18 +6,24 @@
 
     if (!openBtn || !panel) return;
 
+    document.body.appendChild(panel);
+    panel.classList.add('tc-yt-modal');
+
     const closeBtn = document.getElementById('tcYouTubeClose');
     const form = document.getElementById('tcYouTubeSearchForm');
     const query = document.getElementById('tcYouTubeQuery');
     const status = document.getElementById('tcYouTubeStatus');
     const results = document.getElementById('tcYouTubeResults');
     const preview = document.getElementById('tcYouTubePreview');
-    const messageInput = document.getElementById('msgInput');
 
     if (!form || !query || !status || !results || !preview) return;
 
     openBtn.addEventListener('click', function() {
+        const klipyPanel = document.getElementById('tcKlipyPanel');
+        if (klipyPanel) klipyPanel.hidden = true;
+
         panel.hidden = !panel.hidden;
+
         if (!panel.hidden) query.focus();
     });
 
@@ -34,18 +40,44 @@
         return node;
     }
 
-    function shareVideo(video) {
-        if (!messageInput) {
-            status.textContent = 'Chat message box nahi mila.';
+    // Video ko typing box mein daalne ke bajaye seedha chat mein bhejo.
+    async function shareVideo(video) {
+        if (!video || !/^[A-Za-z0-9_-]{11}$/.test(video.id || '')) {
+            status.textContent = 'YouTube video ID invalid hai.';
             return;
         }
 
-        messageInput.value =
-            'https://www.youtube.com/watch?v=' +
+        const sendMessage = window.TC_SEND_CHAT_MESSAGE;
+
+        if (typeof sendMessage !== 'function') {
+            status.textContent =
+                'Direct send setup nahi mila. assets/chat.js mein helper add karein.';
+            console.error('window.TC_SEND_CHAT_MESSAGE is not available.');
+            return;
+        }
+
+        const url = 'https://www.youtube.com/watch?v=' +
             encodeURIComponent(video.id);
 
-        messageInput.focus();
-        panel.hidden = true;
+        status.textContent = 'Video chat mein send ho raha hai...';
+
+        try {
+            const sent = await sendMessage(url);
+
+            if (sent) {
+                status.textContent = 'YouTube video chat mein send ho gaya.';
+                panel.hidden = true;
+                preview.hidden = true;
+                preview.replaceChildren();
+            } else {
+                status.textContent =
+                    'Video send nahi hua. Dobara try karein.';
+            }
+        } catch (error) {
+            console.error('YouTube direct send error:', error);
+            status.textContent =
+                error.message || 'Video send nahi hua. Dobara try karein.';
+        }
     }
 
     function showVideo(video) {
@@ -120,8 +152,10 @@
         event.preventDefault();
 
         const q = query.value.trim();
+
         if (!q) {
-            status.textContent = 'YouTube par search karne ke liye kuch likhein.';
+            status.textContent =
+                'YouTube par search karne ke liye kuch likhein.';
             return;
         }
 
@@ -134,7 +168,6 @@
         if (searchButton) searchButton.disabled = true;
 
         try {
-            // Local XAMPP aur Render dono ke liye relative URL.
             const endpoint = new URL(
                 'youtube_search.php',
                 window.location.href
@@ -145,19 +178,16 @@
             const response = await fetch(endpoint.toString(), {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: { 'Accept': 'application/json' }
             });
 
             const contentType =
                 response.headers.get('content-type') || '';
-
             const raw = await response.text();
 
             if (!contentType.toLowerCase().includes('application/json')) {
                 console.error(
-                    'YouTube endpoint ne JSON ke bajaye HTML diya:',
+                    'YouTube endpoint returned non-JSON:',
                     raw.slice(0, 500)
                 );
 
@@ -176,9 +206,7 @@
             }
 
             if (!response.ok || data.error) {
-                throw new Error(
-                    data.error || 'YouTube search fail hua.'
-                );
+                throw new Error(data.error || 'YouTube search fail hua.');
             }
 
             if (!Array.isArray(data.items) || data.items.length === 0) {

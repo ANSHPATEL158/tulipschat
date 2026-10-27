@@ -1,0 +1,718 @@
+/* ==========================================================================
+   Private Messages: header icon, dropdown aur PM window
+   File: assets/pm.css
+   Colors badalne hon to sirf neeche wale --pm-* variables badlein.
+   ========================================================================== */
+
+.pm-dropdown,
+.pm-windows {
+    --pm-bg: #1b2130;
+    --pm-bg2: #232a3b;
+    --pm-bg3: #141926;
+    --pm-line: #2e374c;
+    --pm-text: #e8ecf6;
+    --pm-muted: #8b95ab;
+    --pm-pri: #5b6cf2;
+    --pm-theirs: #2f3749;
+    --pm-seen: #4fc3f7;
+    --pm-danger: #ef4444;
+    --pm-online: #22c55e;
+}
+
+
+/* class se display set hone par bhi hidden attribute kaam kare */
+
+.pm-wrap [hidden],
+.pm-windows [hidden],
+.pm-dropdown[hidden],
+.pm-badge[hidden] {
+    display: none !important;
+}
+
+
+/* ---------- Common button reset (site ke global button style se bachne ke liye) ---------- */
+
+.pm-hbtn,
+.pm-btn,
+.pm-x,
+.pm-emo,
+.pm-menu-item,
+.pm-user-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-weight: 400;
+    line-height: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    filter: none;
+}
+
+.pm-hbtn:hover,
+.pm-btn:hover,
+.pm-x:hover,
+.pm-emo:hover,
+.pm-menu-item:hover,
+.pm-user-btn:hover {
+    filter: none;
+}
+
+.pm-ico {
+    display: inline-flex;
+    line-height: 0;
+}
+
+
+/* ---------- Header envelope ---------- */
+
+.pm-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.pm-hbtn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    color: #fff;
+}
+
+.pm-hbtn:hover,
+.pm-hbtn[aria-expanded="true"] {
+    background: rgba(255, 255, 255, .16);
+}
+
+.pm-hbtn:focus-visible,
+.pm-btn:focus-visible,
+.pm-x:focus-visible,
+.pm-emo:focus-visible,
+.pm-menu-item:focus-visible,
+.pm-user-btn:focus-visible,
+.pm-item:focus-visible {
+    outline: 2px solid var(--pm-seen, #4fc3f7);
+    outline-offset: 1px;
+}
+
+.pm-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    border: 2px solid #4f46e5;
+    box-sizing: content-box;
+}
+
+.pm-ring {
+    animation: pmRing .6s ease 2;
+}
+
+@keyframes pmRing {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    25% {
+        transform: rotate(-14deg);
+    }
+    75% {
+        transform: rotate(14deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-ring {
+        animation: none;
+    }
+}
+
+
+/* ---------- Dropdown ---------- */
+
+.pm-dropdown {
+    position: absolute;
+    right: -8px;
+    top: calc(100% + 12px);
+    width: 340px;
+    max-height: min(70vh, 560px);
+    display: flex;
+    flex-direction: column;
+    background: var(--pm-bg);
+    color: var(--pm-text);
+    border: 1px solid var(--pm-line);
+    border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .4);
+    overflow: hidden;
+    z-index: 60;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.pm-dd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--pm-line);
+    background: var(--pm-bg2);
+}
+
+.pm-dd-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.pm-dd-tools {
+    display: flex;
+    gap: 4px;
+}
+
+.pm-dd-tools .pm-btn {
+    width: 32px;
+    height: 32px;
+    color: var(--pm-muted);
+}
+
+.pm-dd-tools .pm-btn:hover {
+    background: rgba(255, 255, 255, .08);
+    color: var(--pm-text);
+}
+
+.pm-dd-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.pm-empty {
+    padding: 28px 18px;
+    text-align: center;
+    color: var(--pm-muted);
+}
+
+.pm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+}
+
+.pm-item:hover {
+    background: rgba(255, 255, 255, .05);
+}
+
+.pm-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pm-item-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pm-item-name.is-admin {
+    color: #ff7a8a;
+}
+
+.pm-item-prev {
+    font-size: 12px;
+    color: var(--pm-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pm-item.unread .pm-item-name,
+.pm-item.unread .pm-item-prev {
+    color: var(--pm-text);
+    font-weight: 700;
+}
+
+.pm-count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--pm-danger);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pm-x {
+    width: 30px;
+    height: 30px;
+    color: var(--pm-muted);
+    flex: none;
+}
+
+.pm-x:hover {
+    background: rgba(255, 255, 255, .1);
+    color: var(--pm-text);
+}
+
+
+/* ---------- Avatars ---------- */
+
+.pm-av-wrap {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+}
+
+.pm-av {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2b3347;
+    display: block;
+}
+
+.pm-row-av {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2b3347;
+    display: block;
+}
+
+.pm-online {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--pm-online);
+    border: 2px solid var(--pm-bg);
+}
+
+
+/* ---------- Windows container ---------- */
+
+.pm-windows {
+    position: fixed;
+    right: 16px;
+    bottom: 0;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    gap: 12px;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.pm-win {
+    pointer-events: auto;
+    position: relative;
+    width: 360px;
+    height: min(480px, calc(100dvh - 90px));
+    display: flex;
+    flex-direction: column;
+    background: var(--pm-bg);
+    color: var(--pm-text);
+    border: 1px solid var(--pm-line);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, .45);
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.pm-win.min {
+    height: auto;
+}
+
+.pm-win.min .pm-body,
+.pm-win.min .pm-foot,
+.pm-win.min .pm-emoji,
+.pm-win.min .pm-toast {
+    display: none !important;
+}
+
+.pm-win.full {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    border: 0;
+    z-index: 80;
+}
+
+
+/* ---------- Window header ---------- */
+
+.pm-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 8px 12px;
+    background: var(--pm-bg2);
+    border-bottom: 1px solid var(--pm-line);
+}
+
+.pm-win.min .pm-head {
+    border-bottom: 0;
+    cursor: pointer;
+}
+
+.pm-head .pm-av {
+    width: 34px;
+    height: 34px;
+}
+
+.pm-title {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pm-title-name {
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pm-win.has-unread .pm-title-name::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: var(--pm-danger);
+}
+
+.pm-title-sub {
+    font-size: 11px;
+    color: var(--pm-online);
+    min-height: 14px;
+}
+
+.pm-head-tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.pm-btn {
+    width: 34px;
+    height: 34px;
+    color: var(--pm-muted);
+    flex: none;
+}
+
+.pm-btn:hover {
+    background: rgba(255, 255, 255, .08);
+    color: var(--pm-text);
+}
+
+.pm-btn.pm-send {
+    color: var(--pm-pri);
+}
+
+.pm-btn.pm-send:hover {
+    background: rgba(91, 108, 242, .18);
+    color: #8d99ff;
+}
+
+.pm-btn.pm-off {
+    opacity: .55;
+}
+
+
+/* ---------- Settings menu ---------- */
+
+.pm-menu {
+    position: absolute;
+    top: 48px;
+    right: 8px;
+    min-width: 180px;
+    padding: 6px;
+    background: var(--pm-bg2);
+    border: 1px solid var(--pm-line);
+    border-radius: 10px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .4);
+    z-index: 5;
+}
+
+.pm-menu .pm-menu-item {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    color: var(--pm-text);
+    text-decoration: none;
+    font-size: 14px;
+    text-align: left;
+}
+
+.pm-menu .pm-menu-item:hover {
+    background: rgba(255, 255, 255, .08);
+    text-decoration: none;
+}
+
+.pm-menu .pm-menu-item.danger {
+    color: #ff8a8a;
+}
+
+
+/* ---------- Messages ---------- */
+
+.pm-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--pm-bg);
+}
+
+.pm-hello {
+    margin: auto;
+    text-align: center;
+    color: var(--pm-muted);
+    padding: 0 20px;
+}
+
+.pm-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.pm-row.mine {
+    justify-content: flex-end;
+}
+
+.pm-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 78%;
+    min-width: 0;
+}
+
+.pm-row.mine .pm-col {
+    align-items: flex-end;
+}
+
+.pm-bubble {
+    padding: 8px 12px;
+    border-radius: 16px 16px 16px 4px;
+    background: var(--pm-theirs);
+    color: var(--pm-text);
+    max-width: 100%;
+}
+
+.pm-row.mine .pm-bubble {
+    border-radius: 16px 16px 4px 16px;
+    background: var(--pm-pri);
+    color: #fff;
+}
+
+.pm-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.pm-img,
+.pm-video {
+    display: block;
+    max-width: 100%;
+    max-height: 240px;
+    border-radius: 10px;
+}
+
+.pm-img {
+    cursor: pointer;
+}
+
+.pm-doc {
+    color: inherit;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.pm-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--pm-muted);
+}
+
+.pm-tick {
+    display: inline-flex;
+    color: #7d879c;
+}
+
+.pm-tick.seen {
+    color: var(--pm-seen);
+}
+
+
+/* ---------- Footer / input ---------- */
+
+.pm-foot {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px;
+    border-top: 1px solid var(--pm-line);
+    background: var(--pm-bg2);
+}
+
+.pm-win .pm-input {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    height: 40px;
+    margin: 0 4px;
+    padding: 0 14px;
+    border: 1px solid var(--pm-line);
+    border-radius: 20px;
+    background: var(--pm-bg3);
+    color: var(--pm-text);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+}
+
+.pm-win .pm-input::placeholder {
+    color: var(--pm-muted);
+}
+
+.pm-win .pm-input:focus {
+    outline: none;
+    border-color: var(--pm-pri);
+    box-shadow: 0 0 0 3px rgba(91, 108, 242, .18);
+}
+
+
+/* ---------- Emoji picker ---------- */
+
+.pm-emoji {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 62px;
+    max-height: 190px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+    padding: 8px;
+    background: var(--pm-bg2);
+    border: 1px solid var(--pm-line);
+    border-radius: 12px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .4);
+    z-index: 4;
+}
+
+.pm-emo {
+    height: 34px;
+    font-size: 20px;
+}
+
+.pm-emo:hover {
+    background: rgba(255, 255, 255, .1);
+}
+
+
+/* ---------- Toast ---------- */
+
+.pm-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 66px;
+    transform: translateX(-50%);
+    max-width: 90%;
+    padding: 7px 14px;
+    border-radius: 18px;
+    background: rgba(0, 0, 0, .85);
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+    z-index: 6;
+    pointer-events: none;
+}
+
+
+/* ---------- Online users list: PM button ---------- */
+
+.pm-user-btn {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    color: var(--pri, #4f46e5);
+    flex: none;
+}
+
+.pm-user-btn:hover {
+    background: var(--pri2, #eef2ff);
+}
+
+.user .pm-user-btn+.dot {
+    margin-left: 8px;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 600px) {
+    .pm-dropdown {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        top: 56px;
+        width: auto;
+        max-height: 75dvh;
+    }
+    .pm-windows {
+        left: 0;
+        right: 0;
+    }
+    .pm-win {
+        width: 100%;
+        height: min(78dvh, calc(100dvh - 70px));
+    }
+    .pm-win.min {
+        height: auto;
+    }
+}

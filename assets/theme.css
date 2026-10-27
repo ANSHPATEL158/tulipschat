@@ -1,0 +1,568 @@
+/* ==========================================
+   CHAOS CHAT — NORMAL LITE THEME
+   Simple dark UI, no wallpaper, no neon glow
+   Existing layout and functionality preserved
+========================================== */
+
+:root {
+    --bg: #171717;
+    --card: #202020;
+    --line: #383838;
+    --text: #eeeeee;
+    --muted: #aaaaaa;
+    --pri: #d95b8a;
+    --pri2: #292929;
+    --red: #dc4545;
+    --amber: #d97706;
+    --green: #16a34a;
+    --lite-bg: #171717;
+    --lite-panel: #202020;
+    --lite-border: #383838;
+    --lite-text: #eeeeee;
+    --lite-muted: #aaaaaa;
+    --lite-accent: #d95b8a;
+}
+
+
+/* Base */
+
+html,
+body {
+    background: var(--lite-bg) !important;
+    background-image: none !important;
+    color: var(--lite-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+body:has(.auth-box) {
+    background: var(--lite-bg) !important;
+    background-image: none !important;
+}
+
+h1,
+h2,
+h3 {
+    font-family: inherit !important;
+    letter-spacing: normal !important;
+    text-shadow: none !important;
+}
+
+a {
+    color: var(--lite-accent);
+}
+
+a:hover {
+    color: #f080a8;
+}
+
+::selection {
+    background: #555;
+    color: #fff;
+}
+
+
+/* Header — keep existing layout */
+
+.topbar {
+    background: #1c1c1c !important;
+    background-image: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--lite-border) !important;
+    box-shadow: none !important;
+}
+
+.topbar::before,
+.topbar::after {
+    display: none !important;
+    content: none !important;
+}
+
+.topbar strong {
+    font-family: inherit !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+    letter-spacing: normal !important;
+    color: #fff !important;
+    text-shadow: none !important;
+}
+
+.topbar nav a,
+.topbar nav a:hover,
+.topbar .icon-btn {
+    color: var(--lite-text) !important;
+    text-shadow: none !important;
+}
+
+
+/* Announcement */
+
+.announce {
+    background: #242424 !important;
+    background-image: none !important;
+    color: var(--lite-text) !important;
+    border-bottom: 1px solid var(--lite-border) !important;
+    box-shadow: none !important;
+}
+
+
+/* Chat background */
+
+.messages {
+    background: var(--lite-bg) !important;
+    background-image: none !important;
+    background-size: auto !important;
+    background-position: initial !important;
+    background-repeat: initial !important;
+    scrollbar-color: #555 #171717;
+}
+
+
+/* Messages */
+
+.msg {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.msg-body {
+    background: var(--lite-panel) !important;
+    background-image: none !important;
+    color: var(--lite-text) !important;
+    border: 1px solid var(--lite-border) !important;
+    border-left: 1px solid var(--lite-border) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.msg.mine .msg-body {
+    background: #292929 !important;
+    border: 1px solid var(--lite-border) !important;
+    border-left: 1px solid var(--lite-border) !important;
+}
+
+.msg-head .uname,
+.msg-head .uname.is-admin,
+.uname.is-admin {
+    color: var(--lite-accent) !important;
+    font-family: inherit !important;
+    text-shadow: none !important;
+}
+
+.msg-head .time {
+    color: var(--lite-muted) !important;
+    text-shadow: none !important;
+}
+
+.msg-head .reply-btn {
+    background: transparent !important;
+    color: var(--lite-muted) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+
+/* Online users */
+
+.userlist {
+    background: #1c1c1c !important;
+    background-image: none !important;
+    border-left: 1px solid var(--lite-border) !important;
+    box-shadow: none !important;
+}
+
+.ul-head {
+    background: transparent !important;
+    color: var(--lite-text) !important;
+    border-bottom: 1px solid var(--lite-border) !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    text-shadow: none !important;
+}
+
+.user {
+    color: var(--lite-text) !important;
+}
+
+.user:hover {
+    background: #292929 !important;
+}
+
+.user .badge {
+    background: #333 !important;
+    color: var(--lite-text) !important;
+}
+
+.dot {
+    box-shadow: none !important;
+}
+
+
+/* Message composer — preserve dimensions */
+
+html body #sendForm.send-bar {
+    background: #1c1c1c !important;
+    background-image: none !important;
+    border: 1px solid var(--lite-border) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+html body #sendForm #msgInput {
+    background: #151515 !important;
+    color: var(--lite-text) !important;
+    border: 1px solid #404040 !important;
+    box-shadow: none !important;
+}
+
+html body #sendForm #msgInput:focus {
+    outline: 1px solid #555 !important;
+    border-color: #666 !important;
+    box-shadow: none !important;
+}
+
+
+/* Buttons — normal style, no glow */
+
+button,
+.btn,
+input[type="submit"],
+input[type="button"] {
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+.btn,
+.auth-box button,
+.card button,
+.admin-main button,
+form.inline button {
+    border: 0 !important;
+    transition: none !important;
+}
+
+.btn:hover,
+.auth-box button:hover,
+.card button:hover,
+.admin-main button:hover,
+form.inline button:hover {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+
+/* Upload button duplicate fix */
+
+html body #sendForm .upload-btn~.upload-btn {
+    display: none !important;
+}
+
+html body #sendForm label.upload-btn~label.upload-btn {
+    display: none !important;
+}
+
+
+/* Inputs */
+
+input,
+select,
+textarea {
+    background: #202020 !important;
+    color: var(--lite-text) !important;
+    border: 1px solid #404040 !important;
+    box-shadow: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #999 !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 1px solid #555 !important;
+    border-color: #666 !important;
+    box-shadow: none !important;
+}
+
+
+/* Login and register */
+
+.auth-box {
+    background: var(--lite-panel) !important;
+    background-image: none !important;
+    color: var(--lite-text) !important;
+    border: 1px solid var(--lite-border) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.auth-box::before {
+    background: none !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+.auth-box h1 {
+    color: var(--lite-text) !important;
+    text-shadow: none !important;
+}
+
+
+/* Cards and profile */
+
+.card,
+.stat,
+.bio {
+    background: var(--lite-panel) !important;
+    background-image: none !important;
+    color: var(--lite-text) !important;
+    border-color: var(--lite-border) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.av-lg {
+    border-color: var(--lite-border) !important;
+}
+
+th,
+td {
+    border-bottom-color: var(--lite-border) !important;
+}
+
+th,
+.stat span {
+    color: var(--lite-muted) !important;
+}
+
+
+/* Admin */
+
+.admin-nav {
+    background: #1c1c1c !important;
+    border-right: 1px solid var(--lite-border) !important;
+}
+
+.admin-nav .brand,
+.admin-nav a {
+    color: var(--lite-text) !important;
+    font-family: inherit !important;
+    text-shadow: none !important;
+}
+
+.admin-nav a:hover,
+.admin-nav a.on {
+    background: #303030 !important;
+    color: #fff !important;
+}
+
+
+/* Media popups — remove neon effects, retain positioning */
+
+#tcYouTubePanel.tc-yt-modal,
+#tcKlipyPanel.tc-klipy-modal {
+    background: #202020 !important;
+    background-image: none !important;
+    color: var(--lite-text) !important;
+    border: 1px solid var(--lite-border) !important;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .55) !important;
+}
+
+#tcYouTubePanel .tc-yt-heading,
+#tcKlipyPanel .tc-klipy-heading {
+    color: var(--lite-text) !important;
+}
+
+#tcYouTubePanel .tc-yt-search input,
+#tcKlipyPanel .tc-klipy-search input {
+    background: #151515 !important;
+    color: var(--lite-text) !important;
+    border-color: var(--lite-border) !important;
+    box-shadow: none !important;
+}
+
+#tcYouTubePanel .tc-yt-search button,
+#tcKlipyPanel .tc-klipy-search button,
+#tcYouTubePanel .tc-yt-heading button,
+#tcKlipyPanel .tc-klipy-heading button {
+    background: #303030 !important;
+    color: #fff !important;
+    border: 1px solid var(--lite-border) !important;
+    box-shadow: none !important;
+}
+
+#tcKlipyPanel .tc-klipy-choice {
+    background: #202020 !important;
+    border-color: var(--lite-border) !important;
+}
+
+
+/* Reply/delete menu — preserve its behavior */
+
+.tc-message-actions {
+    background: #202020 !important;
+    color: var(--lite-text) !important;
+    border-color: var(--lite-border) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25) !important;
+}
+
+.tc-message-actions button {
+    background: transparent !important;
+    color: var(--lite-text) !important;
+    box-shadow: none !important;
+}
+
+.tc-message-actions button:hover {
+    background: #303030 !important;
+}
+
+.tc-message-actions .tc-action-delete {
+    color: #ff7777 !important;
+}
+
+.reply-preview {
+    box-shadow: none !important;
+}
+
+
+/* Refresh button — preserve position and animation */
+
+.topbar .refresh-wall-btn {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+.topbar .refresh-wall-btn svg {
+    animation: chaos-refresh-spin 3s linear infinite !important;
+}
+
+.topbar .refresh-wall-btn:hover {
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+@keyframes chaos-refresh-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topbar .refresh-wall-btn svg {
+        animation: none !important;
+    }
+}
+
+
+/* Mobile */
+
+@media (max-width: 760px) {
+    .topbar strong {
+        font-size: 18px !important;
+    }
+    .userlist {
+        background: #1c1c1c !important;
+    }
+    .auth-box {
+        margin-top: 6vh;
+    }
+}
+
+
+/* ==========================================
+   THEME CREATOR FIX
+   Saved themes override Normal Lite colors
+   ========================================== */
+
+html body {
+    background: var(--theme-page-bg, var(--lite-bg)) !important;
+    color: var(--text, var(--lite-text)) !important;
+}
+
+html body .topbar,
+html body .send-bar,
+html body #sendForm.send-bar,
+html body .userlist,
+html body .ul-head,
+html body .announce {
+    background-color: var(--theme-panel-bg, var(--lite-panel)) !important;
+    color: var(--text, var(--lite-text)) !important;
+    border-color: var(--line, var(--lite-border)) !important;
+}
+
+html body .messages {
+    background-color: var(--theme-page-bg, var(--lite-bg)) !important;
+    background-image: none !important;
+}
+
+html body .msg-body {
+    background-color: var(--theme-message-bg, var(--lite-panel)) !important;
+    color: var(--text, var(--lite-text)) !important;
+    border-color: var(--line, var(--lite-border)) !important;
+    border-radius: var(--theme-radius, 8px) !important;
+}
+
+html body .msg.mine .msg-body {
+    background-color: var(--theme-panel-bg, var(--lite-panel)) !important;
+}
+
+html body .msg-head .uname,
+html body .msg-head .uname.is-admin,
+html body .uname.is-admin {
+    color: var(--theme-accent2, var(--lite-accent)) !important;
+}
+
+html body .msg-head .time,
+html body .muted {
+    color: var(--muted, var(--lite-muted)) !important;
+}
+
+html body button,
+html body .btn,
+html body input[type="submit"],
+html body input[type="button"] {
+    background-color: var(--theme-button-bg, #444444);
+    color: var(--theme-button-text, #ffffff);
+}
+
+
+/* Keep reply, delete and media controls functional */
+
+html body .tc-message-actions button {
+    background: transparent !important;
+    color: var(--text, var(--lite-text)) !important;
+}
+
+html body .tc-message-actions .tc-action-delete {
+    color: #ff7777 !important;
+}
+
+
+/* Keep duplicate upload button protection */
+
+html body #sendForm .upload-btn~.upload-btn {
+    display: none !important;
+}
+
+html body #sendForm label.upload-btn~label.upload-btn {
+    display: none !important;
+}
+
+
+/* Preserve refresh button animation */
+
+html body .topbar .refresh-wall-btn svg {
+    animation: chaos-refresh-spin 3s linear infinite !important;
+}

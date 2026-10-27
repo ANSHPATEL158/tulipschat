@@ -79,34 +79,57 @@ if ($tcGiphyEnabled) {
       type="button"
       title="Users"
       aria-label="Toggle users"
-    >&#9776;
-
-<button type="button" onclick="refreshWall()"
-style="padding:4px 8px;
-background:#e75480;
-color:white;
-border:none;
-border-radius:5px;
-cursor:pointer;
-font-size:11px;
-font-weight:bold;">
-🔄 Refresh Wall
-</button>
-
-
-
-<div id="wall-container" class="wall-scroll">
-    <!-- Your existing PHP wall messages -->
-</div>
-<script>
-function refreshWall() {
-    window.location.reload();
-}
-</script>
+    >&#9776;</button>
 
     <strong><?= e(setting('site_name', 'Chaos Chat')) ?></strong>
 
+  
+<button
+  type="button"
+  class="refresh-wall-btn"
+  onclick="refreshWall()"
+  title="Refresh Wall"
+  aria-label="Refresh Wall"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="23"
+    height="23"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20 7v5h-5"/>
+    <path d="M4 17v-5h5"/>
+    <path d="M5.6 9A7 7 0 0 1 17.5 6L20 12"/>
+    <path d="M18.4 15A7 7 0 0 1 6.5 18L4 12"/>
+  </svg>
+</button>
+
+    
+
     <nav>
+      <!-- Private messages: envelope icon + dropdown -->
+      <div class="pm-wrap">
+        <button
+          type="button"
+          id="pmBtn"
+          class="pm-hbtn"
+          title="Private messages"
+          aria-label="Private messages"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <span id="pmBadge" class="pm-badge" hidden>0</span>
+        </button>
+
+        <div id="pmDropdown" class="pm-dropdown" hidden></div>
+      </div>
+
       <a href="profile.php">
         <img
           class="av-sm"
@@ -123,6 +146,16 @@ function refreshWall() {
       <a href="logout.php">Logout</a>
     </nav>
   </header>
+
+  <div id="wall-container" class="wall-scroll">
+    <!-- Your existing PHP wall messages -->
+  </div>
+
+  <script>
+  function refreshWall() {
+    window.location.reload();
+  }
+  </script>
 
   <div class="chat-body">
     <main class="chat-main">
@@ -215,6 +248,9 @@ function refreshWall() {
     </aside>
   </div>
 </div>
+
+<!-- Private message windows (pm.js yahan windows banata hai) -->
+<div id="pmWindows" class="pm-windows"></div>
 
 <script>
 window.AK = {
@@ -523,6 +559,8 @@ if (is_array($tcRegistry)) {
 }
 </style>
 
+<link rel="stylesheet" href="assets/pm.css">
 <script src="assets/chat.js"></script>
+<script src="assets/pm.js"></script>
 
 <?php page_foot(); ?>

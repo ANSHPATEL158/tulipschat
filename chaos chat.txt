@@ -1,0 +1,10 @@
+1. Make Private massege box  - Done 
+
+2. Adjuct Button size 
+
+3. Make new theme - Done
+
+4. Design New Ui 
+
+5. Redesing Youtube and Klipy Gifs Front end 
+
