@@ -97,31 +97,26 @@ $onlineTimeout = max(
     (int)($CFG['online_timeout'] ?? 60)
 );
 
-try {
-    $st = db()->prepare(
-        "SELECT id, username, avatar, role, gender
-         FROM users
-         WHERE last_seen > ?
-           AND (status IS NULL OR LOWER(status) <> 'banned')
-         ORDER BY role, username"
-    );
+$st = db()->prepare(
+    "SELECT id, username, avatar, role
+     FROM users
+     WHERE last_seen > ?
+       AND (status IS NULL OR LOWER(status) <> 'banned')
+     ORDER BY role, username"
+);
 
-    $st->execute([time() - $onlineTimeout]);
+$st->execute([time() - $onlineTimeout]);
 
-    $users = array_map(
-        static fn($r) => [
-            'id' => (int)$r['id'],
-            'name' => $r['username'],
-            'avatar' => avatar_url($r['avatar']),
-            'role' => $r['role'],
-            'gender' => $r['gender'] ?? '',
-        ],
-        $st->fetchAll(PDO::FETCH_ASSOC)
-    );
-} catch (Throwable $e) {
-    error_log('Chaos Chat online users error: ' . $e->getMessage());
-    $users = [];
-}
+$users = array_map(
+    static fn($r) => [
+        'id' => (int)$r['id'],
+        'name' => $r['username'],
+        'avatar' => avatar_url($r['avatar']),
+        'role' => $r['role'],
+        'gender' => '',
+    ],
+    $st->fetchAll(PDO::FETCH_ASSOC)
+);
 
     // Find messages removed by another user/admin.
     $removed = [];
