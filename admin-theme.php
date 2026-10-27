@@ -114,7 +114,7 @@ $csrf = csrf();
 <div style="padding:18px 22px;background:#160a22;border-bottom:3px solid #f02caa;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
   <div style="font-size:25px;font-weight:900;font-style:italic;letter-spacing:1px;">CHAOS <span style="color:#f02caa;">CHAT</span> <span style="font-size:14px;color:#b9a9ca;font-style:normal;">/ ADMIN THEME CREATOR</span></div>
   
-<a href="/tulipschat/chat.php"
+<a href="chat.php"
    style="display:inline-block;padding:10px 14px;background:#d72d85;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;box-shadow:0 0 12px rgba(215,45,133,.35);">
    View Chat
 </a>
