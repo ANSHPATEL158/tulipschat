@@ -169,8 +169,8 @@
 
         try {
             const endpoint = new URL(
-                'youtube_search.php',
-                window.location.href
+                '/youtube_search.php',
+                window.location.origin
             );
 
             endpoint.searchParams.set('q', q);
@@ -185,6 +185,7 @@
                 response.headers.get('content-type') || '';
             const raw = await response.text();
 
+            console.log('YouTube response:', response.status, contentType, raw.slice(0, 1000));
             if (!contentType.toLowerCase().includes('application/json')) {
                 console.error(
                     'YouTube endpoint returned non-JSON:',
