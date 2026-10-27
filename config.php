@@ -1,6 +1,6 @@
 <?php
 return [
-    'db_driver' => getenv('DB_DRIVER') ?: 'mysql',
+    'db_driver' => getenv('DB_DRIVER') ?: 'pgsql',
     'db_host' => getenv('DB_HOST') ?: '127.0.0.1',
     'db_port' => (int) (getenv('DB_PORT') ?: 3306),
     'db_name' => getenv('DB_NAME') ?: 'tulipschat',

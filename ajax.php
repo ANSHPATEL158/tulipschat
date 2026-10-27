@@ -90,25 +90,23 @@ if ($act === 'fetch') {
      * Each fetch request refreshes the current user's last_seen.
      * Only active accounts seen within the timeout are returned.
      */
-    global $CFG;
+   global $CFG;
 
-    $onlineTimeout = max(
-        15,
-        (int)($CFG['online_timeout'] ?? 60)
-    );
+$onlineTimeout = max(
+    15,
+    (int)($CFG['online_timeout'] ?? 60)
+);
 
+try {
     $st = db()->prepare(
-        'SELECT id, username, avatar, role, gender
+        "SELECT id, username, avatar, role, gender
          FROM users
          WHERE last_seen > ?
-           AND status = ?
-         ORDER BY role, username'
+           AND (status IS NULL OR LOWER(status) <> 'banned')
+         ORDER BY role, username"
     );
 
-    $st->execute([
-        time() - $onlineTimeout,
-        'active',
-    ]);
+    $st->execute([time() - $onlineTimeout]);
 
     $users = array_map(
         static fn($r) => [
@@ -116,10 +114,14 @@ if ($act === 'fetch') {
             'name' => $r['username'],
             'avatar' => avatar_url($r['avatar']),
             'role' => $r['role'],
-            'gender' => $r['gender'],
+            'gender' => $r['gender'] ?? '',
         ],
         $st->fetchAll(PDO::FETCH_ASSOC)
     );
+} catch (Throwable $e) {
+    error_log('Chaos Chat online users error: ' . $e->getMessage());
+    $users = [];
+}
 
     // Find messages removed by another user/admin.
     $removed = [];
